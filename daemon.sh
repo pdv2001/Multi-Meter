@@ -2,6 +2,11 @@
 
 echo "My daemon.sh"
 
+if [ -z "$READ_INTERVAL" ]; then
+  echo "READ_INTERVAL not set, will read meter every 60 seconds"
+  READ_INTERVAL=60
+fi
+
 if [ -z "$METERID" ]; then
   echo "METERID not set, launching in debug mode"
   echo "If you don't know your Meter's ID, you'll need to figure it out manually"
