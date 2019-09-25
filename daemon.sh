@@ -44,9 +44,9 @@ while true; do
 
   consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
     if [ ! -z "$consumption" ]; then
-      echo "***NO CONSUMPTION READ***"
-    else 
       echo "Current consumption: $consumption $UNIT"
+    else 
+      echo "***NO CONSUMPTION READ***"
     fi
 
   # Replace with your custom logging code
@@ -58,7 +58,7 @@ while true; do
   fi
 
   kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
-  sleep 60 # I don't need THAT many updates
+  sleep $READ_INTERVAL  # I don't need THAT many updates
 
   # Let the watchdog know we've done another cycle
   touch updated.log
