@@ -7,7 +7,7 @@ file=$2
 
 oneMinute=60
 
-echo "Watchdog starting: Timeout: $timeout, File: $file"
+echo "My Watchdog starting: Timeout: $timeout, File: $file"
 
 sleep $(expr $timeout \* $oneMinute)
 
