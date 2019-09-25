@@ -1,12 +1,16 @@
 #!/bin/bash
 
-echo "My daemon.sh"
+# 9/20/19 - Make sure that consumption is being read and reboot if not.
+#           Add READ_INTERVAL to allow configuration of how often the meter is read.  
+#           NOTE: The Neptune 900 is only updated every 15 minutes anyway
 
+# The interval at which the meter is read is now configureable
 if [ -z "$READ_INTERVAL" ]; then
   echo "READ_INTERVAL not set, will read meter every 60 seconds"
   READ_INTERVAL=60
 fi
 
+# Watchdog timeout is now configureable
 if [ -z "$WATCHDOG_TIMEOUT" ]; then
   echo "WATCHDOG_TIMEOUT not set, will reset if no reading for 30 minutes"
   WATCHDOG_TIMEOUT=30
@@ -49,6 +53,7 @@ while true; do
 
   consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
     
+  # Only do something if a reading has been returned
   if [ ! -z "$consumption" ]; then
     echo "Current consumption: $consumption $UNIT"
 
