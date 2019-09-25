@@ -7,6 +7,11 @@ if [ -z "$READ_INTERVAL" ]; then
   READ_INTERVAL=60
 fi
 
+if [ -z "$WATCHDOG_TIMEOUT" ]; then
+  echo "WATCHDOG_TIMEOUT not set, will reset if no reading for 30 minutes"
+  WATCHDOG_TIMEOUT=30
+fi
+
 if [ -z "$METERID" ]; then
   echo "METERID not set, launching in debug mode"
   echo "If you don't know your Meter's ID, you'll need to figure it out manually"
