@@ -43,7 +43,11 @@ while true; do
   echo "Meter info: $json"
 
   consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
-  echo "Current consumption: $consumption $UNIT"
+    if [ ! -z "$consumption" ]; then
+      echo "***NO CONSUMPTION READ***"
+    else 
+      echo "Current consumption: $consumption $UNIT"
+    fi
 
   # Replace with your custom logging code
   if [ ! -z "$CURL_API" ]; then
