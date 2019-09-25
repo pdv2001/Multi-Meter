@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "My daemon.sh"
+
 if [ -z "$METERID" ]; then
   echo "METERID not set, launching in debug mode"
   echo "If you don't know your Meter's ID, you'll need to figure it out manually"
