@@ -1,28 +1,24 @@
 # Raspberry Pi tracker for Neptune R900 smart water meters
-### Works for City of Atlanta and many other municipalities
-
-[See an example](https://docs.google.com/spreadsheets/d/1XC9UFRQpvzUn7gjXML7KuaprB8APLXgE_EjsmUM8MWI/edit?usp=sharing) (Please don't judge me by my water usage)
+### Thanks to Mark Percival (https://github.com/mdp/AtlantaWaterMeterand)
 
 ## Introduction
 
-Unfortunately this is less elegant and more technically verbose than I would like, but it's still the only way I've found to reliably track my water usage. I've been using this to track my water usage for over a year without any problems (although I've just recently switched for Google Spreadsheets for logging)
-
-The goals of this project are:
-- Use a Raspberry Pi and a RTL-SDR to track my smart water meter (Read: cheap, less than $50)
+Cheap (<$50) solution for reading home water meter using a Raspberry Pi and a RTL-SDR to track my smart water meter (Read: cheap, less than $50):
 - Docker to simplify the installation and setup of RTLAMR
-- Resin.io to deploy this docker container to the Raspberry Pi in my house
+- Balena.io to deploy this docker container to the Raspberry Pi in my house
 - Logging to a Google Spreadsheet so house members can track usage
 
 ## Credit
 
+- Mark Percival (https://github.com/mdp/AtlantaWaterMeterand)
 - @besmasher - Built the excellent [RTLAMR](https://github.com/bemasher/rtlamr) library which actually does all the work of reading the meters.
 - [Frederik Granna's](https://bitbucket.org/fgranna/) docker base for setting up RTL-SDR on the Raspberry Pi
 
 ## Requirements
 
-- Raspberry Pi 3 (Might work on others, only tested on the 3)
+- Raspberry Pi (currently running on V2)
 - [RTL-SDR](https://www.amazon.com/NooElec-NESDR-Mini-Compatible-Packages/dp/B009U7WZCA)
-- [Resin.io](https://resin.io) for deployment and installation to the Raspberry pi
+- [Balena.io](https://Balena.io) for deployment and installation to the Raspberry pi
 
 ### Technical chops
 
@@ -34,12 +30,12 @@ You'll need to be able to do the following to get this to work:
 
 ## Installation
 
-1. Signup for [Resin.io](https://resin.io)
+1. Signup for [Balena.io](https://Balena.io)
 1. Create a new Application and download the image for the Raspberry Pi
 1. Install the image on the Raspberry Pi
 1. Plug in your RTL-SDR into the USB port on the Raspberry Pi
-1. `git push` this repository to your Resin application
-1. In Resin, view the logs on your device and find your meter ID. This is hardest part. You'll need to know your current reading to match it up to the meter ID. I've not found any correlation between what's written on the meter and the ID being sent out over the air.
+1. `git push` this repository to your Balena application
+1. In Balena, view the logs on your device and find your meter ID. This is hardest part. You'll need to know your current reading to match it up to the meter ID. I've not found any correlation between what's written on the meter and the ID being sent out over the air.
 1. Once you find your meter ID, enter it as an environment variable in the Resin dashboard under "METERID"
 1. At this point it's up to you as to where you want to 'send' the data. I log to a Google Spreadsheet and have provided instructions at the end of this README
 
