@@ -40,7 +40,7 @@ RUN git clone https://github.com/merbanan/rtl_433.git \
 	&& cd rtl_433/ \
 	&& mkdir build \
 	&& cd build \
-	&& cmake ../ \
+	&& cmake ../ -DINSTALL_UDEV_RULES=ON -DDETACH_KERNEL_DRIVER=ON \
 	&& make \
 	&& make install 
     
