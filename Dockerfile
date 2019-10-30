@@ -11,10 +11,6 @@ WORKDIR /usr/local
 RUN curl -O https://storage.googleapis.com/golang/go1.7.4.linux-armv6l.tar.gz && \
     tar xvf go1.7.4.linux-armv6l.tar.gz
 
-RUN mkdir /go
-ENV GOPATH /go
-ENV PATH /usr/local/go/bin:/go/bin:$PATH
-
 WORKDIR /tmp/
 
 ENV UDEV=1
