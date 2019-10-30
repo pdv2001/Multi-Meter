@@ -57,35 +57,35 @@ while true; do
   fi
 
   # Suppress the very verbose output of rtl_tcp and background the process
-  rtl_tcp &> /dev/null &
-  rtl_tcp_pid=$! # Save the pid for murder later
-  sleep 10 #Let rtl_tcp startup and open a port
+#  rtl_tcp &> /dev/null &
+#  rtl_tcp_pid=$! # Save the pid for murder later
+#  sleep 10 #Let rtl_tcp startup and open a port
 
-  json=$(rtlamr -msgtype=r900 -filterid=$METERID -single=true -format=json)
-  echo "Meter info: $json"
+#  json=$(rtlamr -msgtype=r900 -filterid=$METERID -single=true -format=json)
+#  echo "Meter info: $json"
   
-  consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
+#  consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
     
   # Only do something if a reading has been returned
-  if [ ! -z "$consumption" ]; then
-    echo "Current consumption: $consumption $UNIT"
+#  if [ ! -z "$consumption" ]; then
+#    echo "Current consumption: $consumption $UNIT"
 
 
     # Replace with your custom logging code
-    if [ ! -z "$CURL_API" ]; then
-      echo "Logging to custom API"
-      # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
-      # Currently uses a GET request
-      curl -L "$CURL_API$consumption"
-    fi
+#    if [ ! -z "$CURL_API" ]; then
+#      echo "Logging to custom API"
+#      # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
+#      # Currently uses a GET request
+#      curl -L "$CURL_API$consumption"
+#    fi
 
-    kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
+#    kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
     sleep $READ_INTERVAL  # I don't need THAT many updates
 
     # Let the watchdog know we've done another cycle
-    touch updated.log
-  else 
-    echo "***NO CONSUMPTION READ***"
+#    touch updated.log
+#  else 
+#    echo "***NO CONSUMPTION READ***"
   fi
 
 
