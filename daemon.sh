@@ -44,6 +44,18 @@ fi
 ./watchdog.sh $WATCHDOG_TIMEOUT updated.log &
 
 while true; do
+  jsonRainfall=$(rtl_433 -F json -E Quit)
+  echo "Rain Gauge JSON output: $json"
+  
+   rainfall=$(echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$cmToInches")
+    
+  # Only do something if a reading has been returned
+  if [ ! -z "$rainfall" ]; then
+    echo "Total rain: $rainfall inches"
+  else 
+    echo "***NO RAINFALL READ***"
+  fi
+
   # Suppress the very verbose output of rtl_tcp and background the process
   rtl_tcp &> /dev/null &
   rtl_tcp_pid=$! # Save the pid for murder later
@@ -76,17 +88,6 @@ while true; do
     echo "***NO CONSUMPTION READ***"
   fi
 
-  jsonRainfall=$(rtl_433 -F json)
-  echo "Rain Gauge JSON output: $json"
-  
-   rainfall=$(echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$cmToInches")
-    
-  # Only do something if a reading has been returned
-  if [ ! -z "$rainfall" ]; then
-    echo "Total rain: $rainfall inches"
-  else 
-    echo "***NO RAINFALL READ***"
-  fi
 
 done
 
