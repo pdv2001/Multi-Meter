@@ -86,7 +86,7 @@ while true; do
 #    touch updated.log
 #  else 
 #    echo "***NO CONSUMPTION READ***"
-  fi
+#  fi
 
 
 done
