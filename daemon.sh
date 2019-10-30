@@ -35,7 +35,7 @@ while true; do
   #jsonRainfall=$(rtl_433 -F json -E Quit)
   #jsonRainfall=$(rtl_433 -F csv -E Quit)
   jsonRainfall=$(rtl_433 -F json -M RGR968 -E quit)
-  echo "Rain Gauge JSON output: $jsonRainfall"
+  echo "Rain Gauge JSON output: $jsonRainfall[1]"
   
   #rainfall=$(echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$cmToInches")
   rainfall=$(echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"total_rain\"])/$cmToInches")
