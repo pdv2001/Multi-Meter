@@ -35,6 +35,7 @@ while true; do
   #jsonRainfall=$(rtl_433 -F json -E Quit)
   #jsonRainfall=$(rtl_433 -F csv -E Quit)
   #jsonRainfall=$(rtl_433 -F json -M RGR968 -E quit)
+  #jsonRainfall=$(rtl_433 -M RGR968 -E)
   jsonRainfall=$(rtl_433 -M RGR968 -E quit)
   echo "Rain Gauge JSON output: $jsonRainfall[1]"
   
