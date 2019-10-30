@@ -31,6 +31,7 @@ fi
 
 # Setup for Metric/CCF
 UNIT_DIVISOR=10000
+cmToInches=2.54
 UNIT="CCF" # Hundred cubic feet
 if [ ! -z "$METRIC" ]; then
   echo "Setting meter to metric readings"
@@ -50,7 +51,7 @@ while true; do
 
   json=$(rtlamr -msgtype=r900 -filterid=$METERID -single=true -format=json)
   echo "Meter info: $json"
-
+  
   consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
     
   # Only do something if a reading has been returned
@@ -74,5 +75,18 @@ while true; do
   else 
     echo "***NO CONSUMPTION READ***"
   fi
+
+  jsonRainfall=$(rtl_433 -F json)
+  echo "Rain Gauge JSON output: $json"
+  
+   rainfall=$(echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$cmToInches")
+    
+  # Only do something if a reading has been returned
+  if [ ! -z "$rainfall" ]; then
+    echo "Total rain: $rainfall inches"
+  else 
+    echo "***NO RAINFALL READ***"
+  fi
+
 done
 
