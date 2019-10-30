@@ -37,7 +37,7 @@ while true; do
   #jsonRainfall=$(rtl_433 -F json -M RGR968 -E quit)
   #jsonRainfall=$(rtl_433 -M RGR968 -E)
   jsonRainfall=$(rtl_433 -M RGR968 -E quit)
-  echo "Rain Gauge JSON output: $jsonRainfall[1]"
+  echo "Rain Gauge JSON output: $jsonRainfall"
   #parsedOutput= JSON.parse($jsonRainfall)
   echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin)"
   
