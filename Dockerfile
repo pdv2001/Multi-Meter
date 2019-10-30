@@ -52,7 +52,7 @@ WORKDIR /app
 COPY daemon.sh .
 COPY watchdog.sh .
 RUN chmod +x *.sh
-COPY rtl_433.conf
+COPY rtl_433.conf .
 
 CMD ./daemon.sh
 
