@@ -29,6 +29,19 @@ while true; do
     if [ ! -z "$temp_c" ]; then
       temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
       echo "Temperature: $temp_f"
+      if [! -z "$rainfall_in"]; then
+        if [ ! -z "$CURL_API" ]; then
+          echo "Logging to custom API"
+          # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
+          # Currently uses a GET request
+          curl -L "$CURL_APIrainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
+        else
+          echo "rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
+        fi
+        unset rainfall_in #Clear this for next time around
+      else
+        echo "No rainfall?"
+      fi
     else
       echo "***NO DATA***"
     fi
