@@ -10,27 +10,6 @@ if [ -z "$READ_INTERVAL" ]; then
   READ_INTERVAL=60
 fi
 
-# Watchdog timeout is now configureable
-if [ -z "$WATCHDOG_TIMEOUT" ]; then
-  echo "WATCHDOG_TIMEOUT not set, will reset if no reading for 30 minutes"
-  WATCHDOG_TIMEOUT=30
-fi
-
-
-# Setup for Metric/CCF
-UNIT_DIVISOR=10000
-mmToInches=25.4
-UNIT="CCF" # Hundred cubic feet
-if [ ! -z "$METRIC" ]; then
-  echo "Setting meter to metric readings"
-  UNIT_DIVISOR=1000
-  UNIT="Cubic Meters"
-fi
-
-# Kill this script (and restart the container) if we haven't seen an update in 30 minutes
-# Nasty issue probably related to a memory leak, but this works really well, so not changing it
-./watchdog.sh $WATCHDOG_TIMEOUT updated.log &
-
 while true; do
   #jsonOutput=$(rtl_433 -M RGR968 -E quit) #Rain gauge signal was very random
   jsonOutput=$(rtl_433 -v -M RGR968 -T 2m00s)
@@ -54,38 +33,7 @@ while true; do
     fi
   fi
 
-  # Suppress the very verbose output of rtl_tcp and background the process
-#  rtl_tcp &> /dev/null &
-#  rtl_tcp_pid=$! # Save the pid for murder later
-#  sleep 10 #Let rtl_tcp startup and open a port
 
-#  json=$(rtlamr -msgtype=r900 -filterid=$METERID -single=true -format=json)
-#  echo "Meter info: $json"
-
-  
-#  consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
-    
-  # Only do something if a reading has been returned
-#  if [ ! -z "$consumption" ]; then
-#    echo "Current consumption: $consumption $UNIT"
-
-
-    # Replace with your custom logging code
-#    if [ ! -z "$CURL_API" ]; then
-#      echo "Logging to custom API"
-#      # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
-#      # Currently uses a GET request
-#      curl -L "$CURL_API$consumption"
-#    fi
-
-#    kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
     sleep $READ_INTERVAL  # I don't need THAT many updates
-
-    # Let the watchdog know we've done another cycle
-#    touch updated.log
-#  else 
-#    echo "***NO CONSUMPTION READ***"
-#  fi
-
 
 done
