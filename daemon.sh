@@ -14,7 +14,8 @@ while true; do
   #jsonOutput=$(rtl_433 -M RGR968 -E quit) #Rain gauge signal was very random
   jsonOutput=$(rtl_433 -v -M RGR968 -T 2m00s)
   echo "Rain Gauge JSON output: $jsonOutput"
-  rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p)
+  rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"')
+  #rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p)
   #rainfall=$(echo $jsonOutput | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"total_rain\"])/$cmToInches")
   
   # Only do something if a reading has been returned
