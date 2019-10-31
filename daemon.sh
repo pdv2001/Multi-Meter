@@ -42,7 +42,7 @@ while true; do
   #rainfallTest=$(echo $jsonRainfall | python -c "import json, sys; [sys.stdout.write(x['rain_mm'] + '\n') for x in json.load(sys.stdin)]")
   #echo "rainfallTest: $rainfallTest"
 
-  echo $jsonRainfall | \ python -c 'import json,sys;obj=json.load(sys.stdin);print obj;'
+  echo $jsonRainfall |  python -c 'import json,sys;obj=json.load(sys.stdin);print obj;'
      #array=$(echo "$jsonRainfall" | jq -r 'to_entries[] | "[" + (.key|@sh) + "]=" + (.value | @sh)'
   #readarray -t array < <(sed -n '/{/,/}/{s/[^:]*:[^"]*"\([^"]*\).*/\1/p;}' $jsonRainfall)
   #echo "Array: ${array[@]}"
