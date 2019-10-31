@@ -47,7 +47,7 @@ while true; do
   #readarray -t array < <(sed -n '/{/,/}/{s/[^:]*:[^"]*"\([^"]*\).*/\1/p;}' $jsonRainfall)
   #echo "Array: ${array[@]}"
   #rainfall=$(echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$cmToInches")
-  echo awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p
+  rainfall=$(echo jsonRainfall | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p)
   #rainfall=$(echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"total_rain\"])/$cmToInches")
   
   # Only do something if a reading has been returned
