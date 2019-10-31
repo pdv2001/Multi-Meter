@@ -19,7 +19,7 @@ fi
 
 # Setup for Metric/CCF
 UNIT_DIVISOR=10000
-cmToInches=2.54
+mmToInches=25.4
 UNIT="CCF" # Hundred cubic feet
 if [ ! -z "$METRIC" ]; then
   echo "Setting meter to metric readings"
@@ -32,27 +32,17 @@ fi
 ./watchdog.sh $WATCHDOG_TIMEOUT updated.log &
 
 while true; do
-  #jsonRainfall=$(rtl_433 -F json -E Quit)
-  #jsonRainfall=$(rtl_433 -F csv -E Quit)
-  #jsonRainfall=$(rtl_433 -F json -M RGR968 -E quit)
-  #jsonRainfall=$(rtl_433 -M RGR968 -E)
-  jsonRainfall=$(rtl_433 -M RGR968 -E quit)
-  echo "Rain Gauge JSON output: $jsonRainfall"
-  #parsedOutput= JSON.parse($jsonRainfall)
-  #rainfallTest=$(echo $jsonRainfall | python -c "import json, sys; [sys.stdout.write(x['rain_mm'] + '\n') for x in json.load(sys.stdin)]")
-  #echo "rainfallTest: $rainfallTest"
-
-  #echo $jsonRainfall |  python -c 'import json,sys;obj=json.load(sys.stdin);print obj;'
-     #array=$(echo "$jsonRainfall" | jq -r 'to_entries[] | "[" + (.key|@sh) + "]=" + (.value | @sh)'
-  #readarray -t array < <(sed -n '/{/,/}/{s/[^:]*:[^"]*"\([^"]*\).*/\1/p;}' $jsonRainfall)
-  #echo "Array: ${array[@]}"
-  #rainfall=$(echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$cmToInches")
-  rainfall=$(echo $jsonRainfall | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p)
-  #rainfall=$(echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"total_rain\"])/$cmToInches")
+  jsonOutput=$(rtl_433 -M RGR968 -E quit)
+  echo "Rain Gauge JSON output: $jsonOutput"
+  rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p)
+  #rainfall=$(echo $jsonOutput | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"total_rain\"])/$cmToInches")
   
   # Only do something if a reading has been returned
-  if [ ! -z "$rainfall" ]; then
-    echo "Total rain: $rainfall inches"
+  if [ ! -z "$rainfall_mm" ]; then
+    rainfall_in=$rainfall_mm/$mmToInches"
+    rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p)
+    rainrate_in=$rainrate_mm/$mmToInches"
+    echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in inches/hr"
   else 
     echo "***NO RAINFALL READ***"
   fi
@@ -64,6 +54,7 @@ while true; do
 
 #  json=$(rtlamr -msgtype=r900 -filterid=$METERID -single=true -format=json)
 #  echo "Meter info: $json"
+
   
 #  consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
     
@@ -91,4 +82,3 @@ while true; do
 
 
 done
-
