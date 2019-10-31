@@ -39,12 +39,16 @@ while true; do
   
   # Only do something if a reading has been returned
   if [ ! -z "$rainfall_mm" ]; then
-    rainfall_in=$rainfall_mm/$mmToInches"
+    let rainfall_in=$rainfall_mm/$mmToInches
     rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p)
-    rainrate_in=$rainrate_mm/$mmToInches"
+    let rainrate_in=$rainrate_mm/$mmToInches
     echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in inches/hr"
-  else 
-    echo "***NO RAINFALL READ***"
+  else #Look for temperature
+    temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p)
+    let temp_f=($temp_c*9/5)+32
+    echo "Temperature: $temp_f"
+  else
+    echo "***NO DATA***"
   fi
 
   # Suppress the very verbose output of rtl_tcp and background the process
