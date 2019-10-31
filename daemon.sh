@@ -42,7 +42,7 @@ while true; do
       # Currently uses a GET request
       url_string=`echo "$CURL_API\"rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f\"" | tr -d ' '`
       echo $url_string
-      curl -L "$url_string"
+      curl -L $url_string
       #curl -L "$CURL_API\"rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f\""
     else
       echo "rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
