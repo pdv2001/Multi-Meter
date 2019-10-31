@@ -51,6 +51,7 @@ while true; do
     else
       echo "***NO DATA***"
     fi
+  fi
 
   # Suppress the very verbose output of rtl_tcp and background the process
 #  rtl_tcp &> /dev/null &
