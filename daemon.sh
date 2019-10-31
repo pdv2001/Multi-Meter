@@ -45,11 +45,12 @@ while true; do
     echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in inches/hr"
   else #Look for temperature
     temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p)
-    let temp_f=($temp_c*9/5)+32
-    echo "Temperature: $temp_f"
-  else
-    echo "***NO DATA***"
-  fi
+    if [ ! -z "$temp_c" ]; then
+      let temp_f=($temp_c*9/5)+32
+      echo "Temperature: $temp_f"
+    else
+      echo "***NO DATA***"
+    fi
 
   # Suppress the very verbose output of rtl_tcp and background the process
 #  rtl_tcp &> /dev/null &
