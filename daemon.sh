@@ -39,7 +39,7 @@ while true; do
   
   # Only do something if a reading has been returned
   if [ ! -z "$rainfall_mm" ]; then
-    rainfall_in=$(echo "$rainfall_mm/$mmToInches"|bc)
+    rainfall_in=$(printf %.1f\\n "$rainfall_mm/$mmToInches")
     rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p)
     rainrate_in=$(echo "$rainrate_mm/$mmToInches"|bc)
     echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in inches/hr"
