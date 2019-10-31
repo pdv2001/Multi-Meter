@@ -35,7 +35,7 @@ while true; do
   fi
 
   #Do we have both rainfall and temperature?
-  if [ ! -z "$rainfall_in" -a ! -z "temp_f" ]; then
+  if [ ! -z "$rainfall_in" -o ! -z "temp_f" ]; then
     if [ ! -z "$CURL_API" ]; then
       echo "Logging to custom API"
       # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
