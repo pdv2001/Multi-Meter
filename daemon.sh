@@ -40,8 +40,10 @@ while true; do
       echo "Logging to custom API"
       # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
       # Currently uses a GET request
-      echo "$CURL_API\"rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f\""
-      curl -L "$CURL_API\"rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f\""
+      url_string=`echo "$CURL_API\"rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f\"" | tr -d ' '`
+      echo url_string
+      curl -L $url_string
+      #curl -L "$CURL_API\"rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f\""
     else
       echo "rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
     fi
