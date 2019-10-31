@@ -46,7 +46,7 @@ while true; do
   else #Look for temperature
     temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p)
     if [ ! -z "$temp_c" ]; then
-      temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5)+32}'`
+      temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
       echo "Temperature: $temp_f"
     else
       echo "***NO DATA***"
