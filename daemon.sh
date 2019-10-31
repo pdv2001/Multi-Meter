@@ -32,7 +32,8 @@ fi
 ./watchdog.sh $WATCHDOG_TIMEOUT updated.log &
 
 while true; do
-  jsonOutput=$(rtl_433 -M RGR968 -E quit)
+  #jsonOutput=$(rtl_433 -M RGR968 -E quit) #Rain gauge signal was very random
+  jsonOutput=$(rtl_433 -M RGR968 -T 60)
   echo "Rain Gauge JSON output: $jsonOutput"
   rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${1}p)
   #rainfall=$(echo $jsonOutput | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"total_rain\"])/$cmToInches")
