@@ -39,11 +39,11 @@ while true; do
   jsonRainfall=$(rtl_433 -M RGR968 -E quit)
   echo "Rain Gauge JSON output: $jsonRainfall"
   #parsedOutput= JSON.parse($jsonRainfall)
-  echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin)"
-  
+  rainfallTest=$(echo $jsonRainfall | python -c "import json, sys; [sys.stdout.write(x['rain_mm'] + '\n') for x in json.load(sys.stdin)]")
+  echo "rainfallTest: $rainfallTest"
   #rainfall=$(echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$cmToInches")
   rainfall=$(echo $jsonRainfall | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"total_rain\"])/$cmToInches")
-    
+  
   # Only do something if a reading has been returned
   if [ ! -z "$rainfall" ]; then
     echo "Total rain: $rainfall inches"
