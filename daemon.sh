@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# 9/20/19 - Make sure that consumption is being read and reboot if not.
-#           Add READ_INTERVAL to allow configuration of how often the meter is read.  
-#           NOTE: The Neptune 900 is only updated every 15 minutes anyway
+# 10/31/19 - Taken from My-Water-Meter and after much trial and error, here we are
 
 # The interval at which the meter is read is now configureable
 if [ -z "$READ_INTERVAL" ]; then
@@ -16,9 +14,8 @@ while true; do
 
   while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
   
-    jsonOutput=$(rtl_433 -M RGR968 -E quit) #Rain gauge signal was very random
-    #jsonOutput=$(rtl_433 -v -M RGR968 -T 2m00s)
-    echo "Rain Gauge JSON output: $jsonOutput"
+    jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
+
     rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
 
     # Only do something if a reading has been returned
@@ -41,14 +38,10 @@ while true; do
     if [ ! -z "$rainfall_in" -a ! -z "$temp_f" ]; then
       if [ ! -z "$CURL_API" ]; then
         echo "Logging to custom API"
-        # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
         # Currently uses a GET request
         #The "start" and "end" are hacks to get pass the readings into the Google web API!
         url_string=`echo "$CURL_API\"start=here&rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f&end=here\"" | tr -d ' '`
-        #url_string=`echo "$CURL_APIrainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f" | tr -d ' '`
-        echo $url_string
         curl -L $url_string
-        #curl -L "$CURL_API\"rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f\""
       else
         echo "rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
       fi
