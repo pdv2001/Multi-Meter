@@ -95,11 +95,11 @@ while true; do
 
     #Do we have both rainfall and temperature?
     if [ ! -z "$rainfall_in" -a ! -z "$temp_f" ]; then
-      if [ ! -z "$CURL_API" ]; then
+      if [ ! -z "$RAIN_API" ]; then
         echo "Logging to custom API"
         # Currently uses a GET request
         #The "start" and "end" are hacks to get pass the readings into the Google web API!
-        url_string=`echo "$CURL_API\"start=here&rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f&end=here\"" | tr -d ' '`
+        url_string=`echo "$RAIN_API\"start=here&rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f&end=here\"" | tr -d ' '`
         curl -L $url_string
       else
         echo "rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
