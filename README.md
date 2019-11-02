@@ -1,5 +1,6 @@
-# Raspberry Pi tracker for Neptune R900 smart water meters
+# Raspberry Pi tracker for both Neptune R900 smart water meters and 433.92MHz devices
 ### Thanks to Mark Percival (https://github.com/mdp/AtlantaWaterMeterand)
+### and Benjamin Larsson (https://github.com/merbanan)
 
 ## Introduction
 
