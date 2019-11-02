@@ -44,7 +44,7 @@ RUN git clone https://github.com/merbanan/rtl_433.git \
 	&& make \
 	&& make install 
     
-#RUN go get github.com/bemasher/rtlamr
+RUN go get github.com/bemasher/rtlamr
 
 RUN mkdir /app
 WORKDIR /app
