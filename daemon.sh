@@ -61,7 +61,6 @@ while true; do
     fi
 
     kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
-    sleep $READ_INTERVAL  # I don't need THAT many updates
 
     # Let the watchdog know we've done another cycle
     touch updated.log
