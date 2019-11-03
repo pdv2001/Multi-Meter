@@ -36,6 +36,10 @@ if [ ! -z "$METRIC" ]; then
   UNIT="Cubic Meters"
 fi
 
+# Kill this script (and restart the container) if we haven't seen an update in x minutes
+# Nasty issue probably related to a memory leak, but this works really well, so not changing it
+./watchdog.sh $WATCHDOG_TIMEOUT updated.log &
+
 while true; do
   # Suppress the very verbose output of rtl_tcp and background the process
   rtl_tcp &> /dev/null &
