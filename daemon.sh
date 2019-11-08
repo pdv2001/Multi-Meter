@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/8/19  - Echo statements for flow monitoring
 # 11/8/19  - Use "=''" instead of unset
 # 11/8/19  - Add gas meter
 # 10/31/19 - Taken from My-Water-Meter and after much trial and error, here we are
@@ -36,6 +37,7 @@ while true; do
   sleep 10 #Let rtl_tcp startup and open a port
 
   #WATER METER
+  echo "Reading water meter"
   json=$(rtlamr -msgtype=r900 -filterid=$WATER_METER_ID -single=true -format=json)
   echo "Meter info: $json"
 
@@ -65,6 +67,7 @@ while true; do
   fi
   
   #GAS METER
+  echo "Reading gas meter"
   json=$(rtlamr -msgtype=scm -filterid=$GAS_METER_ID -single=true -format=json)
   echo "Meter info: $json"
 
@@ -95,7 +98,7 @@ while true; do
   temp_f=''      # inner loop
 
   while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
-  
+    echo "Reading rain gauge"
     jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
 
     rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
@@ -107,6 +110,7 @@ while true; do
       rainrate_in=`echo "$rainrate_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
       echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in in/hr"
     else #Look for temperature
+      echo "Reading temperature"
       temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
       if [ ! -z "$temp_c" ]; then
         temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
