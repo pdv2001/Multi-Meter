@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/8/19  - Use "=''" instead of unset
 # 11/8/19  - Add gas meter
 # 10/31/19 - Taken from My-Water-Meter and after much trial and error, here we are
 
@@ -90,8 +91,8 @@ while true; do
   fi
 
   ##RAIN GAUGE
-  unset rainfall_in #Clear these for 
-  unset temp_f      # inner loop
+  rainfall_in='' #Clear these for 
+  temp_f=''      # inner loop
 
   while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
   
