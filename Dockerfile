@@ -46,6 +46,9 @@ RUN git clone https://github.com/merbanan/rtl_433.git \
     
 RUN go get github.com/bemasher/rtlamr
 
+WORKDIR /etc/modprobe.d
+COPY rtl-sdr-blacklist.conf .
+
 RUN mkdir /app
 WORKDIR /app
 
