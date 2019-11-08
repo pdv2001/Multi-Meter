@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/8/19  - That didn't work!
 # 11/8/19  - Try running rtl_433 as root
 # 11/8/19  - Echo statements for flow monitoring
 # 11/8/19  - Use "=''" instead of unset
@@ -100,7 +101,7 @@ while true; do
 
   while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
     echo "Reading rain gauge"
-    jsonOutput=$(sudo rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
+    jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
 
     rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
 
