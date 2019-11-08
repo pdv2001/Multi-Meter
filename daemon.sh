@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/8/19  - Add gas meter
 # 10/31/19 - Taken from My-Water-Meter and after much trial and error, here we are
 
 # The interval at which the meter is read is now configureable
@@ -12,19 +13,6 @@ fi
 if [ -z "$WATCHDOG_TIMEOUT" ]; then
   echo "WATCHDOG_TIMEOUT not set, will reset if no reading for 30 minutes"
   WATCHDOG_TIMEOUT=30
-fi
-
-if [ -z "$METERID" ]; then
-  echo "METERID not set, launching in debug mode"
-  echo "If you don't know your Meter's ID, you'll need to figure it out manually"
-  echo "Easiest way is to go outside and read your meter, then match it to a meter id in the logs"
-  echo "Note: It may take a several minutes to read all the nearby meters"
-
-  rtl_tcp &> /dev/null &
-  sleep 10 #Let rtl_tcp startup and open a port
-
-  rtlamr -msgtype=r900
-  exit 0
 fi
 
 # Setup for Metric/CCF
@@ -46,7 +34,8 @@ while true; do
   rtl_tcp_pid=$! # Save the pid for murder later
   sleep 10 #Let rtl_tcp startup and open a port
 
-  json=$(rtlamr -msgtype=r900 -filterid=$METERID -single=true -format=json)
+  #WATER METER
+  json=$(rtlamr -msgtype=r900 -filterid=$WATER_METER_ID -single=true -format=json)
   echo "Meter info: $json"
 
   consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
@@ -64,14 +53,43 @@ while true; do
       curl -L "$WATER_API$consumption"
     fi
 
+    #Only do this after gas meter reading
+    #kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
+
+    # Let the watchdog know we've done another cycle
+    #touch updated.log
+    
+  else 
+    echo "***NO WATER CONSUMPTION READ***"
+  fi
+  
+  #GAS METER
+  json=$(rtlamr -msgtype=scm -filterid=$GAS_METER_ID -single=true -format=json)
+  echo "Meter info: $json"
+
+  consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
+    
+  # Only do something if a reading has been returned
+  if [ ! -z "$consumption" ]; then
+    echo "Current consumption: $consumption $UNIT"
+
+    # Replace with your custom logging code
+    if [ ! -z "$GAS_API" ]; then
+      echo "Logging to custom API"
+      # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
+      # Currently uses a GET request
+      curl -L "$GAS_API$consumption"
+    fi
+
     kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
 
     # Let the watchdog know we've done another cycle
     touch updated.log
   else 
-    echo "***NO CONSUMPTION READ***"
+    echo "***NO GAS CONSUMPTION READ***"
   fi
-  
+
+  ##RAIN GAUGE
   unset rainfall_in #Clear these for 
   unset temp_f      # inner loop
 
