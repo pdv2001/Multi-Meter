@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/8/19  - Try reading rain and temperature first!
 # 11/8/19  - That didn't work!
 # 11/8/19  - Try running rtl_433 as root
 # 11/8/19  - Echo statements for flow monitoring
@@ -33,6 +34,50 @@ fi
 ./watchdog.sh $WATCHDOG_TIMEOUT updated.log &
 
 while true; do
+
+  ##RAIN GAUGE AND THERMOMETER
+  rainfall_in='' #Clear these for 
+  temp_f=''      # inner loop
+
+  while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
+    echo "Reading rain gauge"
+    jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
+
+    rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+
+    # Only do something if a reading has been returned
+    if [ ! -z "$rainfall_mm" ]; then
+      rainfall_in=`echo "$rainfall_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
+      rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+      rainrate_in=`echo "$rainrate_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
+      echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in in/hr"
+    else #Look for temperature
+      echo "Reading temperature"
+      temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+      if [ ! -z "$temp_c" ]; then
+        temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
+        echo "Temperature: $temp_f"
+      else
+        echo "***NO DATA***"
+      fi
+    fi
+
+    #Do we have both rainfall and temperature?
+    if [ ! -z "$rainfall_in" -a ! -z "$temp_f" ]; then
+      if [ ! -z "$RAIN_API" ]; then
+        echo "Logging to custom API"
+        # Currently uses a GET request
+        #The "start" and "end" are hacks to get pass the readings into the Google web API!
+        url_string=`echo "$RAIN_API\"start=here&rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f&end=here\"" | tr -d ' '`
+        curl -L $url_string
+      else
+        echo "rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
+      fi
+    else
+      sleep 5 # Sleep for 5 seconds before trying again
+    fi
+  done
+  
   # Suppress the very verbose output of rtl_tcp and background the process
   rtl_tcp &> /dev/null &
   rtl_tcp_pid=$! # Save the pid for murder later
@@ -95,47 +140,5 @@ while true; do
     echo "***NO GAS CONSUMPTION READ***"
   fi
 
-  ##RAIN GAUGE
-  rainfall_in='' #Clear these for 
-  temp_f=''      # inner loop
-
-  while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
-    echo "Reading rain gauge"
-    jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
-
-    rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
-
-    # Only do something if a reading has been returned
-    if [ ! -z "$rainfall_mm" ]; then
-      rainfall_in=`echo "$rainfall_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
-      rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
-      rainrate_in=`echo "$rainrate_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
-      echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in in/hr"
-    else #Look for temperature
-      echo "Reading temperature"
-      temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
-      if [ ! -z "$temp_c" ]; then
-        temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
-        echo "Temperature: $temp_f"
-      else
-        echo "***NO DATA***"
-      fi
-    fi
-
-    #Do we have both rainfall and temperature?
-    if [ ! -z "$rainfall_in" -a ! -z "$temp_f" ]; then
-      if [ ! -z "$RAIN_API" ]; then
-        echo "Logging to custom API"
-        # Currently uses a GET request
-        #The "start" and "end" are hacks to get pass the readings into the Google web API!
-        url_string=`echo "$RAIN_API\"start=here&rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f&end=here\"" | tr -d ' '`
-        curl -L $url_string
-      else
-        echo "rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
-      fi
-    else
-      sleep 5 # Sleep for 5 seconds before trying again
-    fi
-  done
     sleep $READ_INTERVAL  # I don't need THAT many updates
 done
