@@ -138,6 +138,8 @@ while true; do
       curl -L "$GAS_API$consumption"
     fi
 
+  ps=$(ps -ef | grep rtl_tcp)
+  echo "$ps"
     echo "Killing rtl_tcp: $rtl_tcp_pid"
     kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
     echo "Killed one"
