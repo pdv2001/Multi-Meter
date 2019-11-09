@@ -193,12 +193,12 @@ while true; do
         curl -L $url_string
       else
         echo "rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
+        let "time_taken = $SECONDS - start"
+        echo "Reading rain and temperature took $time_taken seconds"
       fi
     else
       sleep 5 # Sleep for 5 seconds before trying again
     fi
-    let "time_taken = $SECONDS - start"
-    echo "Reading rain and temperature took $time_taken seconds"
   done
   
   sleep $READ_INTERVAL  # I don't need THAT many updates
