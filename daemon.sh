@@ -148,7 +148,7 @@ while true; do
 
   #while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
   #while [ ! -z "$READ_RAIN" -a  -z "$rainfall_in" ] ||  [ ! -z "READ_TEMPERATURE" -a  -z "$temp_f" ]; do
-  while [[ (! -z "$READ_RAIN" -a  -z "$rainfall_in") ||  (! -z "READ_TEMPERATURE" -a  -z "$temp_f") ]]; do
+  while [[ ( ! -z "$READ_RAIN" -a  -z "$rainfall_in" ) ||  ( ! -z "READ_TEMPERATURE" -a  -z "$temp_f" ) ]]; do
     echo "Reading rain gauge"
     jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
 
