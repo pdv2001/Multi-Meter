@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/8/19  - Use kill -9 to kill rtl_tcp
 # 11/8/19  - How many instances of rtl_tcp are running?
 # 11/8/19  - There are 2 instances of rtl_tcp with same PID! Kill both
 # 11/8/19  - Determine why rtl_tcp is not getting killed
@@ -84,10 +85,7 @@ while true; do
   # Suppress the very verbose output of rtl_tcp and background the process
   rtl_tcp &> /dev/null &
   rtl_tcp_pid=$! # Save the pid for murder later
-  echo "rtl_tcp_pid: $rtl_tcp_pid"
   sleep 10 #Let rtl_tcp startup and open a port
-  ps=$(ps -ef | grep rtl_tcp)
-  echo "$ps"
 
   #WATER METER
   echo "Reading water meter"
@@ -138,17 +136,7 @@ while true; do
       curl -L "$GAS_API$consumption"
     fi
 
-  ps=$(ps -ef | grep rtl_tcp)
-  echo "$ps"
-    echo "Killing rtl_tcp: $rtl_tcp_pid"
     kill -9 $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
-    echo "Killed one"
-  ps=$(ps -ef | grep rtl_tcp)
-  echo "$ps"
-    kill -9 $rtl_tcp_pid # Kill both instances?
-    echo "Killed another"
-  ps=$(ps -ef | grep rtl_tcp)
-  echo "$ps"
 
     # Let the watchdog know we've done another cycle
     touch updated.log
