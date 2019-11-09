@@ -141,11 +141,11 @@ while true; do
   ps=$(ps -ef | grep rtl_tcp)
   echo "$ps"
     echo "Killing rtl_tcp: $rtl_tcp_pid"
-    kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
+    kill -9 $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
     echo "Killed one"
   ps=$(ps -ef | grep rtl_tcp)
   echo "$ps"
-    kill $rtl_tcp_pid # Kill both instances?
+    kill -9 $rtl_tcp_pid # Kill both instances?
     echo "Killed another"
   ps=$(ps -ef | grep rtl_tcp)
   echo "$ps"
