@@ -86,7 +86,8 @@ while true; do
   rtl_tcp_pid=$! # Save the pid for murder later
   echo "rtl_tcp_pid: $rtl_tcp_pid"
   sleep 10 #Let rtl_tcp startup and open a port
-  echo "ps -ef | grep rtl_tcp"
+  ps=$(ps -ef | grep rtl_tcp)
+  echo "$ps"
 
   #WATER METER
   echo "Reading water meter"
@@ -140,10 +141,12 @@ while true; do
     echo "Killing rtl_tcp: $rtl_tcp_pid"
     kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
     echo "Killed one"
-    echo "ps -ef | grep rtl_tcp"
+  ps=$(ps -ef | grep rtl_tcp)
+  echo "$ps"
     kill $rtl_tcp_pid # Kill both instances?
     echo "Killed another"
-    echo "ps -ef | grep rtl_tcp"
+  ps=$(ps -ef | grep rtl_tcp)
+  echo "$ps"
 
     # Let the watchdog know we've done another cycle
     touch updated.log
