@@ -143,6 +143,8 @@ while true; do
   kill -9 $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
 
   ##RAIN GAUGE AND THERMOMETER
+  start=$SECONDS
+  
   rainfall_in='' #Clear these for 
   temp_f=''      # inner loop
 
@@ -153,25 +155,28 @@ while true; do
     echo "Reading rain gauge"
     jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
 
-    rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
-
-    # Only do something if a reading has been returned
-    if [ ! -z "$rainfall_mm" ]; then
-      rainfall_in=`echo "$rainfall_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
-      rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
-      rainrate_in=`echo "$rainrate_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
-      echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in in/hr"
-    else #Look for temperature
-      echo "Reading temperature"
-      temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
-      if [ ! -z "$temp_c" ]; then
-        temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
-        echo "Temperature: $temp_f"
-      else
-        echo "***NO DATA***"
+    if [ ! -z "$READ_RAIN" ]; then
+      #Check for rainfall
+      rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+      # Only do something if a reading has been returned
+      if [ ! -z "$rainfall_mm" ]; then
+        echo "Read rainfall"
+        rainfall_in=`echo "$rainfall_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
+        rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+        rainrate_in=`echo "$rainrate_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
+        echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in in/hr"
       fi
     fi
-
+    if [ ! -z "$READ_TEMPERATURE" ]; then
+      #Look for temperature
+      temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+      if [ ! -z "$temp_c" ]; then
+        echo "Read temperature"
+        temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
+        echo "Temperature: $temp_f"
+      fi
+    fi
+    
     #Do we have both rainfall and temperature?
     if [ ! -z "$rainfall_in" -a ! -z "$temp_f" ]; then
       if [ ! -z "$RAIN_API" ]; then
@@ -187,6 +192,8 @@ while true; do
       sleep 5 # Sleep for 5 seconds before trying again
     fi
   done
+  let 'time_taken = $SECONDS - start'
+  echo "Reading rain and temperature took $time_taken $SECONDS"
   
   sleep $READ_INTERVAL  # I don't need THAT many updates
   
