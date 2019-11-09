@@ -192,8 +192,8 @@ while true; do
       sleep 5 # Sleep for 5 seconds before trying again
     fi
   done
-  let 'time_taken = $SECONDS - start'
-  echo "Reading rain and temperature took $time_taken $SECONDS"
+  let "time_taken = $SECONDS - start"
+  echo "Reading rain and temperature took $time_taken seconds"
   
   sleep $READ_INTERVAL  # I don't need THAT many updates
   
