@@ -1,16 +1,33 @@
 #!/bin/bash
 
-# 11/8/19  - Use kill -9 to kill rtl_tcp
-# 11/8/19  - How many instances of rtl_tcp are running?
-# 11/8/19  - There are 2 instances of rtl_tcp with same PID! Kill both
-# 11/8/19  - Determine why rtl_tcp is not getting killed
-# 11/8/19  - Try reading rain and temperature first!
-# 11/8/19  - That didn't work!
-# 11/8/19  - Try running rtl_433 as root
-# 11/8/19  - Echo statements for flow monitoring
-# 11/8/19  - Use "=''" instead of unset
-# 11/8/19  - Add gas meter
-# 10/31/19 - Taken from My-Water-Meter and after much trial and error, here we are
+# 11/9/19  - Added support for up to three 900MHz meters
+# 11/9/19  - Taken from Rain-Water
+
+#-----------------------------------------------------------------------------------------------
+#| This supports reading 3 different types of meter + rain gauge and thermometer               |
+#| The following are configurable:                                                             |
+#| Meter 1:                                                                                    |
+#|         METER_1_API:      URL to which data will be posted                                  |
+#|         METER_1_ID:       Meter ID                                                          |
+#|         METER_1_TYPE:     Meter Type (gas, water, electric)                                 |
+#|         METER_1_MSG_TYPE: Message type supported by meter(scm, r900, ...)                   |
+#| Meter 2:                                                                                    |
+#|         METER_2_API:      URL to which data will be posted                                  |
+#|         METER_2_ID:       Meter ID                                                          |
+#|         METER_2_TYPE:     Meter Type (gas, water, electric)                                 |
+#|         METER_2_MSG_TYPE: Message type supported by meter(scm, r900, ...)                   |
+#| Meter 3:                                                                                    |
+#|         METER_3_API:      URL to which data will be posted                                  |
+#|         METER_3_ID:       Meter ID                                                          |
+#|         METER_3_TYPE:     Meter Type (gas, water, electric)                                 |
+#|         METER_3_MSG_TYPE: Message type supported by meter(scm, r900, ...)                   |
+#| READ_RAIN: Read rain gauge (y/n)                                                            |
+#| READ_TEMPERATURE: Read thermometer (y/n)                                                    |
+#|                                                                                             |
+#| READ_INTERVAL: Number of seconds between successive readings                                |
+#| WATCHDOG_TIMEOUT: Number of minutes without data before reboot                              |
+#|                                                                                             |
+#-----------------------------------------------------------------------------------------------
 
 # The interval at which the meter is read is now configureable
 if [ -z "$READ_INTERVAL" ]; then
@@ -38,6 +55,91 @@ fi
 ./watchdog.sh $WATCHDOG_TIMEOUT updated.log &
 
 while true; do
+  
+  # Suppress the very verbose output of rtl_tcp and background the process
+  rtl_tcp &> /dev/null &
+  rtl_tcp_pid=$! # Save the pid for murder later
+  sleep 10 #Let rtl_tcp startup and open a port
+
+  if [ ! -z "$METER_1_ID" ]; then
+    #1ST METER
+    echo "Reading $METER_1_TYPE meter"
+    json=$(rtlamr -msgtype=$METER_1_MSG_TYPE -filterid=$METER_1_ID -single=true -format=json)
+    echo "Meter info: $json"
+
+    consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
+
+    # Only do something if a reading has been returned
+    if [ ! -z "$consumption" ]; then
+      echo "Current $METER_1_TYPE consumption: $consumption $UNIT"
+
+      # Replace with your custom logging code
+      if [ ! -z "$METER_1_API" ]; then
+        echo "Logging $METER_1_TYPE consumption to custom API"
+        # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
+        # Currently uses a GET request
+        curl -L "$METER_1_API$consumption"
+      fi
+    # Let the watchdog know we've read something
+    touch updated.log
+    else 
+      echo "***NO $METER_1_TYPE CONSUMPTION READ***"
+    fi
+  fi
+
+  if [ ! -z "$METER_2_ID" ]; then
+    #2ND METER
+    echo "Reading $METER_2_TYPE meter"
+    json=$(rtlamr -msgtype=$METER_2_MSG_TYPE -filterid=$METER_2_ID -single=true -format=json)
+    echo "Meter info: $json"
+
+    consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
+
+    # Only do something if a reading has been returned
+    if [ ! -z "$consumption" ]; then
+      echo "Current $METER_2_TYPE consumption: $consumption $UNIT"
+
+      # Replace with your custom logging code
+      if [ ! -z "$METER_2_API" ]; then
+        echo "Logging $METER_2_TYPE consumption to custom API"
+        # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
+        # Currently uses a GET request
+        curl -L "$METER_2_API$consumption"
+      fi
+    # Let the watchdog know we've read something
+    touch updated.log
+    else 
+      echo "***NO $METER_2_TYPE CONSUMPTION READ***"
+    fi
+  fi
+
+  if [ ! -z "$METER_3_ID" ]; then
+    #3RD METER
+    echo "Reading $METER_3_TYPE meter"
+    json=$(rtlamr -msgtype=$METER_3_MSG_TYPE -filterid=$METER_3_ID -single=true -format=json)
+    echo "Meter info: $json"
+
+    consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
+
+    # Only do something if a reading has been returned
+    if [ ! -z "$consumption" ]; then
+      echo "Current $METER_3_TYPE consumption: $consumption $UNIT"
+
+      # Replace with your custom logging code
+      if [ ! -z "$METER_3_API" ]; then
+        echo "Logging $METER_3_TYPE consumption to custom API"
+        # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
+        # Currently uses a GET request
+        curl -L "$METER_3_API$consumption"
+      fi
+     # Let the watchdog know we've read something
+    touch updated.log
+   else 
+      echo "***NO $METER_3_TYPE CONSUMPTION READ***"
+    fi
+  fi
+  
+  kill -9 $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
 
   ##RAIN GAUGE AND THERMOMETER
   rainfall_in='' #Clear these for 
@@ -82,67 +184,6 @@ while true; do
     fi
   done
   
-  # Suppress the very verbose output of rtl_tcp and background the process
-  rtl_tcp &> /dev/null &
-  rtl_tcp_pid=$! # Save the pid for murder later
-  sleep 10 #Let rtl_tcp startup and open a port
-
-  #WATER METER
-  echo "Reading water meter"
-  json=$(rtlamr -msgtype=r900 -filterid=$WATER_METER_ID -single=true -format=json)
-  echo "Meter info: $json"
-
-  consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
-    
-  # Only do something if a reading has been returned
-  if [ ! -z "$consumption" ]; then
-    echo "Current consumption: $consumption $UNIT"
-
-
-    # Replace with your custom logging code
-    if [ ! -z "$WATER_API" ]; then
-      echo "Logging to custom API"
-      # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
-      # Currently uses a GET request
-      curl -L "$WATER_API$consumption"
-    fi
-
-    #Only do this after gas meter reading
-    #kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
-
-    # Let the watchdog know we've done another cycle
-    #touch updated.log
-    
-  else 
-    echo "***NO WATER CONSUMPTION READ***"
-  fi
+  sleep $READ_INTERVAL  # I don't need THAT many updates
   
-  #GAS METER
-  echo "Reading gas meter"
-  json=$(rtlamr -msgtype=scm -filterid=$GAS_METER_ID -single=true -format=json)
-  echo "Meter info: $json"
-
-  consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
-    
-  # Only do something if a reading has been returned
-  if [ ! -z "$consumption" ]; then
-    echo "Current consumption: $consumption $UNIT"
-
-    # Replace with your custom logging code
-    if [ ! -z "$GAS_API" ]; then
-      echo "Logging to custom API"
-      # For example, CURL_API would be "https://mylogger.herokuapp.com?value="
-      # Currently uses a GET request
-      curl -L "$GAS_API$consumption"
-    fi
-
-    kill -9 $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
-
-    # Let the watchdog know we've done another cycle
-    touch updated.log
-  else 
-    echo "***NO GAS CONSUMPTION READ***"
-  fi
-
-    sleep $READ_INTERVAL  # I don't need THAT many updates
 done
