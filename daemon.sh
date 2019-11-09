@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/8/19  - There are 2 instances of rtl_tcp with same PID! Kill both
 # 11/8/19  - Determine why rtl_tcp is not getting killed
 # 11/8/19  - Try reading rain and temperature first!
 # 11/8/19  - That didn't work!
@@ -135,6 +136,7 @@ while true; do
     fi
 
     kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
+    kill $rtl_tcp_pid # Kill both instances?
     echo "Killing rtl_tcp: $rtl_tcp_pid"
 
     # Let the watchdog know we've done another cycle
