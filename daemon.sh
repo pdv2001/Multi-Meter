@@ -165,6 +165,9 @@ while true; do
         rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
         rainrate_in=`echo "$rainrate_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
         echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in in/hr"
+        let "time_taken = $SECONDS - start"
+        echo "Reading rain took $time_taken seconds"
+
       fi
     fi
     if [ ! -z "$READ_TEMPERATURE" ]; then
@@ -174,6 +177,9 @@ while true; do
         echo "Read temperature"
         temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
         echo "Temperature: $temp_f"
+        let "time_taken = $SECONDS - start"
+        echo "Reading temperature took $time_taken seconds"
+
       fi
     fi
     
@@ -191,9 +197,9 @@ while true; do
     else
       sleep 5 # Sleep for 5 seconds before trying again
     fi
+    let "time_taken = $SECONDS - start"
+    echo "Reading rain and temperature took $time_taken seconds"
   done
-  let "time_taken = $SECONDS - start"
-  echo "Reading rain and temperature took $time_taken seconds"
   
   sleep $READ_INTERVAL  # I don't need THAT many updates
   
