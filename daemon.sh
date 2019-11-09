@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/8/19  - Determine why rtl_tcp is not getting killed
 # 11/8/19  - Try reading rain and temperature first!
 # 11/8/19  - That didn't work!
 # 11/8/19  - Try running rtl_433 as root
@@ -81,6 +82,7 @@ while true; do
   # Suppress the very verbose output of rtl_tcp and background the process
   rtl_tcp &> /dev/null &
   rtl_tcp_pid=$! # Save the pid for murder later
+  echo "rtl_tcp_pid: $rtl_tcp_pid"
   sleep 10 #Let rtl_tcp startup and open a port
 
   #WATER METER
@@ -133,6 +135,7 @@ while true; do
     fi
 
     kill $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
+    echo "Killing rtl_tcp: $rtl_tcp_pid"
 
     # Let the watchdog know we've done another cycle
     touch updated.log
