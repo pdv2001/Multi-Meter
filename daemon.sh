@@ -200,7 +200,7 @@ while true; do
     
     let "time_taken = $SECONDS - start"
     if [ $time_taken -ge $TIME_TO_WAIT ]; then
-      if [ -z "$rainfall_in" ] then
+      if [ -z "$rainfall_in" ]; then
         echo "***No rain measurement in $time_taken seconds. MARKING RAIN GAUGUE UNAVAILABLE***"
         READ_RAIN=""
         rainfall_in=0
