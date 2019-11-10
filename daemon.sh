@@ -154,13 +154,13 @@ while true; do
   start=$SECONDS
   
   #If we are not reading rainfall or temperature set these values to 0
-  if [ -z "$READ_RAIN" ] then
+  if [ -z "$READ_RAIN" ]; then
     rainfall_in=0
     rainrate_in=0
   else
     rainfall_in=''
   fi
-  if [ -z "READ_TEMPERATURE" ] then
+  if [ -z "$READ_TEMPERATURE" ]; then
     temp_f=0
   else
     temp_f=''
@@ -199,14 +199,14 @@ while true; do
     fi
     
     let "time_taken = $SECONDS - start"
-    if [ $time_taken -ge $TIME_TO_WAIT ] then
+    if [ $time_taken -ge $TIME_TO_WAIT ]; then
       if [ -z "$rainfall_in" ] then
         echo "***No rain measurement in $time_taken seconds. MARKING RAIN GAUGUE UNAVAILABLE***"
         READ_RAIN=""
         rainfall_in=0
         rainrate_in=0
       fi
-      if [ -z "$temp_f" ] then
+      if [ -z "$temp_f" ]; then
         echo "***No temperature measurement in $time_taken seconds. MARKING THERMOMETER UNAVAILABLE***"
         READ_TEMPERATURE=""
         temp_f=0
