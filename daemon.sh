@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/10/19 - Handle thermometer/raingauge not being readable
 # 11/9/19  - Make reading temperature/rain configurable
 # 11/9/19  - Added support for up to three 900MHz meters
 # 11/9/19  - Taken from Rain-Water
@@ -26,6 +27,7 @@
 #| READ_TEMPERATURE: Read thermometer (y/n)                                                    |
 #|                                                                                             |
 #| READ_INTERVAL: Number of seconds between successive readings                                |
+#| TIME_TO_WAIT: Number of seconds before marking instruments off-line                         |
 #| WATCHDOG_TIMEOUT: Number of minutes without data before reboot                              |
 #|                                                                                             |
 #-----------------------------------------------------------------------------------------------
@@ -34,6 +36,12 @@
 if [ -z "$READ_INTERVAL" ]; then
   echo "READ_INTERVAL not set, will read meter every 60 seconds"
   READ_INTERVAL=60
+fi
+
+# The time to wait before marking thermometer or rain gauge off line (in seconds)
+if [ -z "$TIME_TO_WAIT" ]; then
+  echo "TIME_TO_WAIT not set, will mark instruments off line after 200 seconds"
+  TIME_TO_WAIT=200
 fi
 
 # Watchdog timeout is now configureable
@@ -145,12 +153,21 @@ while true; do
   ##RAIN GAUGE AND THERMOMETER
   start=$SECONDS
   
-  rainfall_in='' #Clear these for 
-  temp_f=''      # inner loop
+  #If we are not reading rainfall or temperature set these values to 0
+  if [ -z "$READ_RAIN" ] then
+    rainfall_in=0
+    rainrate_in=0
+  else
+    rainfall_in=''
+  fi
+  if [ -z "READ_TEMPERATURE" ] then
+    temp_f=0
+  else
+    temp_f=''
+  fi
 
   #while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
-  #while [ ! -z "$READ_RAIN" -a  -z "$rainfall_in" ] ||  [ ! -z "READ_TEMPERATURE" -a  -z "$temp_f" ]; do
-  #while [[ ( ! -z "$READ_RAIN" -a  -z "$rainfall_in" ) ||  ( ! -z "READ_TEMPERATURE" -a  -z "$temp_f" ) ]]; do
+  #Now that we are initializig rainfall and temperature to 0 if we are not reading them this could be simplified as above
   while [ \( ! -z "$READ_RAIN" -a  -z "$rainfall_in" \) -o  \( ! -z "READ_TEMPERATURE" -a  -z "$temp_f" \) ]; do
     echo "Reading rain gauge"
     jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
@@ -167,7 +184,6 @@ while true; do
         echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in in/hr"
         let "time_taken = $SECONDS - start"
         echo "Reading rain took $time_taken seconds"
-
       fi
     fi
     if [ ! -z "$READ_TEMPERATURE" ]; then
@@ -179,7 +195,21 @@ while true; do
         echo "Temperature: $temp_f"
         let "time_taken = $SECONDS - start"
         echo "Reading temperature took $time_taken seconds"
-
+      fi
+    fi
+    
+    let "time_taken = $SECONDS - start"
+    if [ $time_taken -ge $TIME_TO_WAIT ] then
+      if [ -z "$rainfall_in" ] then
+        echo "***No rain measurement in $time_taken seconds. MARKING RAIN GAUGUE UNAVAILABLE***"
+        READ_RAIN=""
+        rainfall_in=0
+        rainrate_in=0
+      fi
+      if [ -z "$temp_f" ] then
+        echo "***No temperature measurement in $time_taken seconds. MARKING THERMOMETER UNAVAILABLE***"
+        READ_TEMPERATURE=""
+        temp_f=0
       fi
     fi
     
