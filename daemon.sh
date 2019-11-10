@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/10/19 - Reduce interval between successive rain gauge readings and wait 10s after killing rtl_tcp
 # 11/10/19 - Echo 433 JSON output
 # 11/10/19 - Handle thermometer/raingauge not being readable
 # 11/9/19  - Make reading temperature/rain configurable
@@ -150,7 +151,8 @@ while true; do
   fi
   
   kill -9 $rtl_tcp_pid # rtl_tcp has a memory leak and hangs after frequent use, restarts required - https://github.com/bemasher/rtlamr/issues/49
-
+  sleep 10 #Wait for kill signal (should probably wait longer!)
+  
   ##RAIN GAUGE AND THERMOMETER
   start=$SECONDS
   
@@ -229,7 +231,7 @@ while true; do
         echo "Reading rain and temperature took $time_taken seconds"
       fi
     else
-      sleep 5 # Sleep for 5 seconds before trying again
+      sleep 1 # Sleep for 1 seconds before trying again
     fi
   done
   
