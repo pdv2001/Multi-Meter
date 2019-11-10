@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/10/19 - Echo 433 JSON output
 # 11/10/19 - Handle thermometer/raingauge not being readable
 # 11/9/19  - Make reading temperature/rain configurable
 # 11/9/19  - Added support for up to three 900MHz meters
@@ -74,7 +75,7 @@ while true; do
     #1ST METER
     echo "Reading $METER_1_TYPE meter"
     json=$(rtlamr -msgtype=$METER_1_MSG_TYPE -filterid=$METER_1_ID -single=true -format=json)
-    echo "Meter info: $json"
+    echo "$METER_1_TYPE meter info: $json"
 
     consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
 
@@ -100,7 +101,7 @@ while true; do
     #2ND METER
     echo "Reading $METER_2_TYPE meter"
     json=$(rtlamr -msgtype=$METER_2_MSG_TYPE -filterid=$METER_2_ID -single=true -format=json)
-    echo "Meter info: $json"
+    echo "$METER_1_TYPE meter info: $json"
 
     consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
 
@@ -126,7 +127,7 @@ while true; do
     #3RD METER
     echo "Reading $METER_3_TYPE meter"
     json=$(rtlamr -msgtype=$METER_3_MSG_TYPE -filterid=$METER_3_ID -single=true -format=json)
-    echo "Meter info: $json"
+    echo "$METER_1_TYPE meter info: $json"
 
     consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
 
@@ -171,6 +172,7 @@ while true; do
   while [ \( ! -z "$READ_RAIN" -a  -z "$rainfall_in" \) -o  \( ! -z "READ_TEMPERATURE" -a  -z "$temp_f" \) ]; do
     echo "Reading rain gauge"
     jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
+    echo "Rain/temp output: $jsonOutput"
 
     if [ ! -z "$READ_RAIN" ]; then
       #Check for rainfall
