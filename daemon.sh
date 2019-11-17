@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/17/19 - Time entire read cycle
 # 11/10/19 - Reduce interval between successive rain gauge readings and wait 10s after killing rtl_tcp
 # 11/10/19 - Echo 433 JSON output
 # 11/10/19 - Handle thermometer/raingauge not being readable
@@ -66,6 +67,8 @@ fi
 ./watchdog.sh $WATCHDOG_TIMEOUT updated.log &
 
 while true; do
+
+  start=$SECONDS #Time how long one cycle takes
   
   # Suppress the very verbose output of rtl_tcp and background the process
   rtl_tcp &> /dev/null &
@@ -154,7 +157,7 @@ while true; do
   sleep 10 #Wait for kill signal (should probably wait longer!)
   
   ##RAIN GAUGE AND THERMOMETER
-  start=$SECONDS
+  start_rain=$SECONDS
   
   #If we are not reading rainfall or temperature set these values to 0
   if [ -z "$READ_RAIN" ]; then
@@ -186,7 +189,7 @@ while true; do
         rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
         rainrate_in=`echo "$rainrate_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
         echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in in/hr"
-        let "time_taken = $SECONDS - start"
+        let "time_taken = $SECONDS - rain_start"
         echo "Reading rain took $time_taken seconds"
       fi
     fi
@@ -197,12 +200,12 @@ while true; do
         echo "Read temperature"
         temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
         echo "Temperature: $temp_f"
-        let "time_taken = $SECONDS - start"
+        let "time_taken = $SECONDS - rain_start"
         echo "Reading temperature took $time_taken seconds"
       fi
     fi
     
-    let "time_taken = $SECONDS - start"
+    let "time_taken = $SECONDS - rain_start"
     if [ $time_taken -ge $TIME_TO_WAIT ]; then
       if [ -z "$rainfall_in" ]; then
         echo "***No rain measurement in $time_taken seconds. MARKING RAIN GAUGUE UNAVAILABLE***"
@@ -227,14 +230,15 @@ while true; do
         curl -L $url_string
       else
         echo "rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
-        let "time_taken = $SECONDS - start"
+        let "time_taken = $SECONDS - rain_start"
         echo "Reading rain and temperature took $time_taken seconds"
       fi
     else
       sleep 1 # Sleep for 1 seconds before trying again
     fi
   done
-  
+  let "time_taken = $SECONDS - start"
+  echo "One cycle took $time_taken seconds"  
   sleep $READ_INTERVAL  # I don't need THAT many updates
   
 done
