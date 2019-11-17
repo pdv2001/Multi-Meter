@@ -8,6 +8,8 @@
 # 11/9/19  - Added support for up to three 900MHz meters
 # 11/9/19  - Taken from Rain-Water
 
+#$ git reset --hard HEAD; git pull; git push balena master --force
+
 #-----------------------------------------------------------------------------------------------
 #| This supports reading 3 different types of meter + rain gauge and thermometer               |
 #| The following are configurable:                                                             |
