@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 11/18/19 - Use correct variable name for rain/temperature timer
 # 11/17/19 - Time entire read cycle
 # 11/10/19 - Reduce interval between successive rain gauge readings and wait 10s after killing rtl_tcp
 # 11/10/19 - Echo 433 JSON output
@@ -191,7 +192,7 @@ while true; do
         rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
         rainrate_in=`echo "$rainrate_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
         echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in in/hr"
-        let "time_taken = $SECONDS - rain_start"
+        let "time_taken = $SECONDS - $start_rain"
         echo "Reading rain took $time_taken seconds"
       fi
     fi
@@ -202,12 +203,12 @@ while true; do
         echo "Read temperature"
         temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
         echo "Temperature: $temp_f"
-        let "time_taken = $SECONDS - rain_start"
+        let "time_taken = $SECONDS - $start_rain"
         echo "Reading temperature took $time_taken seconds"
       fi
     fi
     
-    let "time_taken = $SECONDS - rain_start"
+    let "time_taken = $SECONDS - $start_rain"
     if [ $time_taken -ge $TIME_TO_WAIT ]; then
       if [ -z "$rainfall_in" ]; then
         echo "***No rain measurement in $time_taken seconds. MARKING RAIN GAUGUE UNAVAILABLE***"
@@ -232,7 +233,7 @@ while true; do
         curl -L $url_string
       else
         echo "rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
-        let "time_taken = $SECONDS - rain_start"
+        let "time_taken = $SECONDS - $start_rain"
         echo "Reading rain and temperature took $time_taken seconds"
       fi
     else
