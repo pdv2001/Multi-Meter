@@ -178,7 +178,7 @@ while true; do
   #while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
   #Now that we are initializig rainfall and temperature to 0 if we are not reading them this could be simplified as above
   while [ \( ! -z "$READ_RAIN" -a  -z "$rainfall_in" \) -o  \( ! -z "READ_TEMPERATURE" -a  -z "$temp_f" \) ]; do
-    echo "Reading rain gauge"
+    echo "Reading rainfall/temperature"
     jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
     echo "Rain/temp output: $jsonOutput"
 
@@ -208,6 +208,8 @@ while true; do
       fi
     fi
     
+    #Mark devices offline if no reading otherwise we just waste time waiting for them
+    #NEED SOME WAY OF RENABLING THEM
     let "time_taken = $SECONDS - $start_rain"
     if [ $time_taken -ge $TIME_TO_WAIT ]; then
       if [ -z "$rainfall_in" ]; then
@@ -229,7 +231,7 @@ while true; do
         echo "Logging to custom API"
         # Currently uses a GET request
         #The "start" and "end" are hacks to get pass the readings into the Google web API!
-        url_string=`echo "$RAIN_API\"start=here&rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f&end=here\"" | tr -d ' '`
+        url_string=`echo "$RAIN_API\"start=here&rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f&readingrain=$READ_RAIN&readingtemp=$READ_TEMPERATURE&end=here\"" | tr -d ' '`
         curl -L $url_string
       else
         echo "rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
