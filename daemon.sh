@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 2/5/21   - Try with -G switch
 # 11/9/19  - Move rain gauge/thermometer after gas and water in case it hangs.  Echo rain gauge/thrmometer reading
 # 11/8/19  - Use kill -9 to kill rtl_tcp
 # 11/8/19  - How many instances of rtl_tcp are running?
@@ -109,7 +110,8 @@ while true; do
 
   while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
     echo "Reading rain gauge"
-    jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
+    #jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
+    jsonOutput=$(rtl_433 -G -E quit) #quit after signal is read so that we can process the data
     echo "$jsonOutput"
 
     rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
