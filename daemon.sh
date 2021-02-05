@@ -42,7 +42,7 @@
 # rtl_443 parameter is configurable
 if [ -z "$RTL_433" ]; then
   echo "RTL_443 parameter not set, using default: -M RGR968"
-  RTL_433="-M RGR968"
+  RTL_433=" -M RGR968 "
 fi
 
 # The interval at which the meter is read is now configureable
