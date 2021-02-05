@@ -187,7 +187,8 @@ while true; do
   while [ \( ! -z "$READ_RAIN" -a  -z "$rainfall_in" \) -o  \( ! -z "READ_TEMPERATURE" -a  -z "$temp_f" \) ]; do
     echo "Reading rainfall/temperature"
     #jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
-    jsonOutput=$(rtl_433 "$RTL_433" -E quit) #quit after signal is read so that we can process the data
+    #jsonOutput=$(rtl_433 "$RTL_433" -E quit) #quit after signal is read so that we can process the data
+    jsonOutput=$(rtl_433 -h -E quit) #quit after signal is read so that we can process the data
     echo "Rain/temp output: $jsonOutput"
 
     if [ ! -z "$READ_RAIN" ]; then
