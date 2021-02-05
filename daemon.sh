@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 2/5/21   - Make rtl_443 parameters configurable
 # 11/18/19 - Use correct variable name for rain/temperature timer
 # 11/17/19 - Time entire read cycle
 # 11/10/19 - Reduce interval between successive rain gauge readings and wait 10s after killing rtl_tcp
@@ -37,6 +38,12 @@
 #| WATCHDOG_TIMEOUT: Number of minutes without data before reboot                              |
 #|                                                                                             |
 #-----------------------------------------------------------------------------------------------
+
+# rtl_443 parameter is configurable
+if [ -z "$RTL_433" ]; then
+  echo "RTL_443 parameter not set, using default: -M RGR968"
+  RTL_433="-M RGR968"
+fi
 
 # The interval at which the meter is read is now configureable
 if [ -z "$READ_INTERVAL" ]; then
@@ -176,10 +183,11 @@ while true; do
   fi
 
   #while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
-  #Now that we are initializig rainfall and temperature to 0 if we are not reading them this could be simplified as above
+  #Now that we are initializing rainfall and temperature to 0 if we are not reading them this could be simplified as above
   while [ \( ! -z "$READ_RAIN" -a  -z "$rainfall_in" \) -o  \( ! -z "READ_TEMPERATURE" -a  -z "$temp_f" \) ]; do
     echo "Reading rainfall/temperature"
-    jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
+    #jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
+    jsonOutput=$(rtl_433 "$RTL_433" -E quit) #quit after signal is read so that we can process the data
     echo "Rain/temp output: $jsonOutput"
 
     if [ ! -z "$READ_RAIN" ]; then
