@@ -10,6 +10,8 @@
 # 11/9/19  - Added support for up to three 900MHz meters
 # 11/9/19  - Taken from Rain-Water
 
+#See https://github.com/merbanan/rtl_433/pull/986
+
 #$ git reset --hard HEAD; git pull; git push balena master --force
 
 #-----------------------------------------------------------------------------------------------
@@ -32,6 +34,7 @@
 #|         METER_3_MSG_TYPE: Message type supported by meter(scm, r900, ...)                   |
 #| READ_RAIN: Read rain gauge (y/n)                                                            |
 #| READ_TEMPERATURE: Read thermometer (y/n)                                                    |
+#| RTL_433: RTL_433 parameter string                                                    |
 #|                                                                                             |
 #| READ_INTERVAL: Number of seconds between successive readings                                |
 #| TIME_TO_WAIT: Number of seconds before marking instruments off-line                         |
@@ -186,8 +189,8 @@ while true; do
   #Now that we are initializing rainfall and temperature to 0 if we are not reading them this could be simplified as above
   while [ \( ! -z "$READ_RAIN" -a  -z "$rainfall_in" \) -o  \( ! -z "READ_TEMPERATURE" -a  -z "$temp_f" \) ]; do
     echo "Reading rainfall/temperature"
-    jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
-    #jsonOutput=$(rtl_433 "$RTL_433" -E quit) #quit after signal is read so that we can process the data
+    #jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
+    jsonOutput=$(rtl_433 "$RTL_433" -E quit) #quit after signal is read so that we can process the data
     #jsonOutput=$(rtl_433 -h -E quit) #quit after signal is read so that we can process the data
     echo "Rain/temp output: $jsonOutput"
 
