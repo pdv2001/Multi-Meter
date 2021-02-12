@@ -194,7 +194,7 @@ while true; do
 #    rainrate_in=0
 #  else
 #    rainfall_in=''
-   rainfall=0
+    rainfall=0
     rainrate=0
   else
     rainfall=''
@@ -218,7 +218,7 @@ while true; do
     #jsonOutput=$(rtl_433 -h -E quit) #quit after signal is read so that we can process the data
     echo "Rain/temp output: $jsonOutput"
 
-    if [ ! -z "$READ_RAIN" ]; then
+    if [ ! -z "$READ_RAIN" -a -z "$rainfall" ]; then
       #Check for rainfall
 #      rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
       if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" = "n" ]; then
@@ -249,7 +249,7 @@ while true; do
         echo "Reading rain took $time_taken seconds (Temperature: $temp)"
       fi
     fi
-    if [ ! -z "$READ_TEMPERATURE" ]; then
+    if [ ! -z "$READ_TEMPERATURE" -a -z "$temp" ]; then
       #Look for temperature
       #temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
       if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" = "n" ]; then
