@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 2/12/21  - Make imperial/metric configurable for weather readings
 # 2/5/21   - Make rtl_443 parameters configurable
 # 11/18/19 - Use correct variable name for rain/temperature timer
 # 11/17/19 - Time entire read cycle
@@ -32,9 +33,13 @@
 #|         METER_3_ID:       Meter ID                                                          |
 #|         METER_3_TYPE:     Meter Type (gas, water, electric)                                 |
 #|         METER_3_MSG_TYPE: Message type supported by meter(scm, r900, ...)                   |
+#|                                                                                             |
+#| METERS_METRIC: Convert meter readings to metric (y/n)                                       |
+#|                                                                                             |
 #| READ_RAIN: Read rain gauge (y/n)                                                            |
 #| READ_TEMPERATURE: Read thermometer (y/n)                                                    |
-#| RTL_433: RTL_433 parameter string                                                    |
+#| WEATHER_METRIC: Metric vs Imperial (y/n)                                                    |
+#| RTL_433: RTL_433 parameter string                                                           |
 #|                                                                                             |
 #| READ_INTERVAL: Number of seconds between successive readings                                |
 #| TIME_TO_WAIT: Number of seconds before marking instruments off-line                         |
@@ -47,6 +52,17 @@ if [ -z "$RTL_433" ]; then
   echo "RTL_443 parameter not set, using default: -M RGR968"
   RTL_433=" -M RGR968 "
 fi
+
+# For weather: Should the measure be imperial rather than metric?
+if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" -eq "n" ]; then
+  echo "Weather readings are imperial"
+  WEATHER_MEASURE=" -C customary "
+else
+  echo "Weather readings are metric
+  WEATHER_MEASURE=" -C si "
+fi
+  
+
 
 # The interval at which the meter is read is now configureable
 if [ -z "$READ_INTERVAL" ]; then
@@ -69,7 +85,7 @@ fi
 # Setup for Metric/CCF
 UNIT_DIVISOR=10000
 UNIT="CCF" # Hundred cubic feet
-if [ ! -z "$METRIC" ]; then
+if [ ! -z "$METERS_METRIC" ]; then
   echo "Setting meter to metric readings"
   UNIT_DIVISOR=1000
   UNIT="Cubic Meters"
@@ -174,47 +190,78 @@ while true; do
   
   #If we are not reading rainfall or temperature set these values to 0
   if [ -z "$READ_RAIN" ]; then
-    rainfall_in=0
-    rainrate_in=0
+#    rainfall_in=0
+#    rainrate_in=0
+#  else
+#    rainfall_in=''
+   rainfall=0
+    rainrate=0
   else
-    rainfall_in=''
+    rainfall=''
   fi
   if [ -z "$READ_TEMPERATURE" ]; then
-    temp_f=0
+#    temp_f=0
+#  else
+#    temp_f=''
+    temp=0
   else
-    temp_f=''
+    temp=''
   fi
 
   #while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
   #Now that we are initializing rainfall and temperature to 0 if we are not reading them this could be simplified as above
-  while [ \( ! -z "$READ_RAIN" -a  -z "$rainfall_in" \) -o  \( ! -z "READ_TEMPERATURE" -a  -z "$temp_f" \) ]; do
+#  while [ \( ! -z "$READ_RAIN" -a  -z "$rainfall_in" \) -o  \( ! -z "READ_TEMPERATURE" -a  -z "$temp_f" \) ]; do
+  while [ \( ! -z "$READ_RAIN" -a  -z "$rainfall" \) -o  \( ! -z "READ_TEMPERATURE" -a  -z "$temp" \) ]; do
     echo "Reading rainfall/temperature"
     #jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
-    jsonOutput=$(rtl_433 $RTL_433 -E quit) #quit after signal is read so that we can process the data
+    jsonOutput=$(rtl_433 $RTL_433 $WEATHER_MEASURE -E quit) #quit after signal is read so that we can process the data
     #jsonOutput=$(rtl_433 -h -E quit) #quit after signal is read so that we can process the data
     echo "Rain/temp output: $jsonOutput"
 
     if [ ! -z "$READ_RAIN" ]; then
       #Check for rainfall
-      rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+#      rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+      if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" -eq "n" ]; then
+        #Working in imperial
+        rainfall=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_in'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+      else
+        rainfall=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+      fi
+
       # Only do something if a reading has been returned
-      if [ ! -z "$rainfall_mm" ]; then
-        echo "Read rainfall"
-        rainfall_in=`echo "$rainfall_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
-        rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
-        rainrate_in=`echo "$rainrate_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
-        echo "Total rain: $rainfall_in inches... Rate of fall: $rainrate_in in/hr"
+#      if [ ! -z "$rainfall_mm" ]; then
+      if [ ! -z "$rainfall" ]; then
+        echo "Rainfall was read"
+        #rainfall_in=`echo "$rainfall_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
+        #Now get rate
+        if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" -eq "n" ]; then
+          #Working in imperial
+          rainrate=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_in_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+        else
+          rainrate=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+        fi
+
+        #rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+        #rainrate_in=`echo "$rainrate_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
+        echo "Total rain: $rainfall inches... Rate of fall: $rainrate in/hr"
         let "time_taken = $SECONDS - $start_rain"
         echo "Reading rain took $time_taken seconds"
       fi
     fi
     if [ ! -z "$READ_TEMPERATURE" ]; then
       #Look for temperature
-      temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
-      if [ ! -z "$temp_c" ]; then
-        echo "Read temperature"
-        temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
-        echo "Temperature: $temp_f"
+      #temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+      if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" -eq "n" ]; then
+       #Working in imperial
+       temp=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_F'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+     else
+       temp=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+     fi
+
+     if [ ! -z "$temp" ]; then
+        echo "Temperature was read"
+        #temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
+        echo "Temperature: $temp"
         let "time_taken = $SECONDS - $start_rain"
         echo "Reading temperature took $time_taken seconds"
       fi
@@ -224,29 +271,29 @@ while true; do
     #NEED SOME WAY OF RENABLING THEM
     let "time_taken = $SECONDS - $start_rain"
     if [ $time_taken -ge $TIME_TO_WAIT ]; then
-      if [ -z "$rainfall_in" ]; then
+      if [ -z "$rainfall" ]; then
         echo "***No rain measurement in $time_taken seconds. MARKING RAIN GAUGUE UNAVAILABLE***"
         READ_RAIN=""
-        rainfall_in=0
-        rainrate_in=0
+        rainfall=0
+        rainrate=0
       fi
-      if [ -z "$temp_f" ]; then
+      if [ -z "$temp" ]; then
         echo "***No temperature measurement in $time_taken seconds. MARKING THERMOMETER UNAVAILABLE***"
         READ_TEMPERATURE=""
-        temp_f=0
+        temp=0
       fi
     fi
     
     #Do we have both rainfall and temperature?
-    if [ ! -z "$rainfall_in" -a ! -z "$temp_f" ]; then
+    if [ ! -z "$rainfall" -a ! -z "$temp" ]; then
       if [ ! -z "$RAIN_API" ]; then
         echo "Logging to custom API"
         # Currently uses a GET request
         #The "start" and "end" are hacks to get pass the readings into the Google web API!
-        url_string=`echo "$RAIN_API\"start=here&rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f&readingrain=$READ_RAIN&readingtemp=$READ_TEMPERATURE&end=here\"" | tr -d ' '`
+        url_string=`echo "$RAIN_API\"start=here&rainfall=$rainfall&rate=$rainrate&temperature=$temp&readingrain=$READ_RAIN&readingtemp=$READ_TEMPERATURE&end=here\"" | tr -d ' '`
         curl -L $url_string
       else
-        echo "rainfall=$rainfall_in&rate=$rainrate_in&temperature=$temp_f"
+        echo "rainfall=$rainfall&rate=$rainrate&temperature=$temp"
         let "time_taken = $SECONDS - $start_rain"
         echo "Reading rain and temperature took $time_taken seconds"
       fi
