@@ -58,7 +58,7 @@ if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" -eq "n" ]; then
   echo "Weather readings are imperial"
   WEATHER_MEASURE=" -C customary "
 else
-  echo "Weather readings are metric
+  echo "Weather readings are metric"
   WEATHER_MEASURE=" -C si "
 fi
   
