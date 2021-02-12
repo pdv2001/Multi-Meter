@@ -54,7 +54,7 @@ if [ -z "$RTL_433" ]; then
 fi
 
 # For weather: Should the measure be imperial rather than metric?
-if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" -eq "n" ]; then
+if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" = "n" ]; then
   echo "Weather readings are imperial"
   WEATHER_MEASURE=" -C customary "
 else
@@ -221,7 +221,7 @@ while true; do
     if [ ! -z "$READ_RAIN" ]; then
       #Check for rainfall
 #      rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
-      if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" -eq "n" ]; then
+      if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" = "n" ]; then
         #Working in imperial
         rainfall=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_in'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
       else
@@ -234,7 +234,7 @@ while true; do
         echo "Rainfall was read"
         #rainfall_in=`echo "$rainfall_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
         #Now get rate
-        if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" -eq "n" ]; then
+        if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" = "n" ]; then
           #Working in imperial
           rainrate=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_in_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
           echo "Total rain: $rainfall inches... Rate of fall: $rainrate in/hr"
@@ -252,7 +252,7 @@ while true; do
     if [ ! -z "$READ_TEMPERATURE" ]; then
       #Look for temperature
       #temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
-      if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" -eq "n" ]; then
+      if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" = "n" ]; then
         #Working in imperial
         temp=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_F'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
         echo "Temperature: $temp F"
