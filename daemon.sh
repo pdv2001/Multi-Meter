@@ -301,6 +301,7 @@ while true; do
         echo "Reading rain and temperature took $time_taken seconds"
       fi
       #Reset for next time around
+      echo "Resetting rain and temperature"
       rainfall=''
       temp=''
     else
