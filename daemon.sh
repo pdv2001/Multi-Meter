@@ -246,7 +246,7 @@ while true; do
         #rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
         #rainrate_in=`echo "$rainrate_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
         let "time_taken = $SECONDS - $start_rain"
-        echo "Reading rain took $time_taken seconds"
+        echo "Reading rain took $time_taken seconds (Temperature: $temp)"
       fi
     fi
     if [ ! -z "$READ_TEMPERATURE" ]; then
@@ -265,7 +265,7 @@ while true; do
         echo "Temperature was read"
         #temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
         let "time_taken = $SECONDS - $start_rain"
-        echo "Reading temperature took $time_taken seconds"
+        echo "Reading temperature took $time_taken seconds (Rainfall = $rainfall)"
       fi
     fi
     
