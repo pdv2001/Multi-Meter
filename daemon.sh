@@ -237,13 +237,14 @@ while true; do
         if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" -eq "n" ]; then
           #Working in imperial
           rainrate=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_in_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+          echo "Total rain: $rainfall inches... Rate of fall: $rainrate in/hr"
         else
           rainrate=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+          echo "Total rain: $rainfall mm...  Rate of fall: $rainrate mm/hr"
         fi
 
         #rainrate_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_rate_mm_h'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
         #rainrate_in=`echo "$rainrate_mm 25.4" | awk '{printf"%.2f \n", $1/$2}'`
-        echo "Total rain: $rainfall inches... Rate of fall: $rainrate in/hr"
         let "time_taken = $SECONDS - $start_rain"
         echo "Reading rain took $time_taken seconds"
       fi
@@ -252,16 +253,17 @@ while true; do
       #Look for temperature
       #temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
       if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" -eq "n" ]; then
-       #Working in imperial
-       temp=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_F'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
-     else
-       temp=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
-     fi
+        #Working in imperial
+        temp=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_F'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+        echo "Temperature: $temp F"
+      else
+        temp=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+        echo "Temperature: $temp C"
+      fi
 
      if [ ! -z "$temp" ]; then
         echo "Temperature was read"
         #temp_f=`echo "$temp_c" | awk '{printf"%.2f \n", $1*9/5+32}'`
-        echo "Temperature: $temp"
         let "time_taken = $SECONDS - $start_rain"
         echo "Reading temperature took $time_taken seconds"
       fi
@@ -291,6 +293,7 @@ while true; do
         # Currently uses a GET request
         #The "start" and "end" are hacks to get pass the readings into the Google web API!
         url_string=`echo "$RAIN_API\"start=here&rainfall=$rainfall&rate=$rainrate&temperature=$temp&readingrain=$READ_RAIN&readingtemp=$READ_TEMPERATURE&end=here\"" | tr -d ' '`
+        echo url_string
         curl -L $url_string
       else
         echo "rainfall=$rainfall&rate=$rainrate&temperature=$temp"
