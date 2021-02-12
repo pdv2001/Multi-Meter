@@ -296,10 +296,13 @@ while true; do
         echo url_string
         curl -L $url_string
       else
-        echo "rainfall=$rainfall&rate=$rainrate&temperature=$temp"
+        echo "rainfall=$rainfall & rate=$rainrate & temperature=$temp"
         let "time_taken = $SECONDS - $start_rain"
         echo "Reading rain and temperature took $time_taken seconds"
       fi
+      #Reset for next time around
+      rainfall=''
+      temp=''
     else
       sleep 1 # Sleep for 1 seconds before trying again
     fi
