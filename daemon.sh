@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 2/14/21  - Allow for different device models for rain and temperature
 # 2/12/21  - Make imperial/metric configurable for weather readings
 # 2/5/21   - Make rtl_443 parameters configurable
 # 11/18/19 - Use correct variable name for rain/temperature timer
@@ -37,9 +38,10 @@
 #| METERS_METRIC: Convert meter readings to metric (y/n)                                       |
 #|                                                                                             |
 #| READ_RAIN: Read rain gauge (y/n)                                                            |
-#| READ_TEMPERATURE: Read thermometer (y/n)                                                    |
+#| READ_TEMP: Read thermometer (y/n)                                                    |
 #| WEATHER_METRIC: Metric vs Imperial (y/n)                                                    |
-#| RTL_433: RTL_433 parameter string                                                           |
+#| RTL_433_RAIN: RTL_433 parameter string for rain gauge                                       |
+#| RTL_433_TEMP: RTL_433 parameter string for thermometer                                      |
 #|                                                                                             |
 #| READ_INTERVAL: Number of seconds between successive readings                                |
 #| TIME_TO_WAIT: Number of seconds before marking instruments off-line                         |
@@ -47,10 +49,14 @@
 #|                                                                                             |
 #-----------------------------------------------------------------------------------------------
 
-# rtl_443 parameter is configurable
-if [ -z "$RTL_433" ]; then
-  echo "RTL_443 parameter not set, using default: -M RGR968"
-  RTL_433=" -M RGR968 "
+# rtl_443 device parameters are configurable
+if [ -z "$RTL_433_RAIN" ]; then
+  echo "RTL_443 parameter for rain gauge not set, using default: -M RGR968"
+  RTL_433_RAIN=" -M RGR968 "
+fi
+if [ -z "$RTL_433_TEMP" ]; then
+  echo "RTL_443 parameter for thermometer not set, using default: -M RGR968"
+  RTL_433_TEMP=" -M RGR968 "
 fi
 
 # For weather: Should the measure be imperial rather than metric?
@@ -62,7 +68,23 @@ else
   WEATHER_MEASURE=" -C si "
 fi
   
+# Are we reading a rain gauge?
+if [ -z "$READ_RAIN" -o "$READ_RAIN" = "n" ]; then
+  echo "Not reading rain"
+  READ_RAIN="n"
+else
+  echo "Reading rain"
+  READ_RAIN="y"
+fi
 
+# Are we reading a thermometer?
+if [ -z "$READ_TEMP" -o "$READ_TEMP" = "n" ]; then
+  echo "Not reading temperature"
+  READ_TEMP="n"
+else
+  echo "Reading temperature"
+  READ_TEMP="y"
+fi
 
 # The interval at which the meter is read is now configureable
 if [ -z "$READ_INTERVAL" ]; then
@@ -94,6 +116,9 @@ fi
 # Kill this script (and restart the container) if we haven't seen an update in x minutes
 # Nasty issue probably related to a memory leak, but this works really well, so not changing it
 ./watchdog.sh $WATCHDOG_TIMEOUT updated.log &
+
+rain_offline="n"
+temp_offline="n"
 
 while true; do
 
@@ -189,20 +214,22 @@ while true; do
   start_rain=$SECONDS
   
   #If we are not reading rainfall or temperature set these values to 0
-  if [ -z "$READ_RAIN" ]; then
+#  if [ -z "$READ_RAIN" ]; then
 #    rainfall_in=0
 #    rainrate_in=0
 #  else
 #    rainfall_in=''
+  if [ "$READ_RAIN" = "n" ]; then
     rainfall=0
     rainrate=0
   else
     rainfall=''
   fi
-  if [ -z "$READ_TEMPERATURE" ]; then
+#  if [ -z "$READ_TEMP" ]; then
 #    temp_f=0
 #  else
 #    temp_f=''
+  if [ "$READ_TEMP" = "n" ]; then
     temp=0
   else
     temp=''
@@ -210,15 +237,15 @@ while true; do
 
   #while [ -z "$rainfall_in" -o -z "$temp_f" ]; do
   #Now that we are initializing rainfall and temperature to 0 if we are not reading them this could be simplified as above
-#  while [ \( ! -z "$READ_RAIN" -a  -z "$rainfall_in" \) -o  \( ! -z "READ_TEMPERATURE" -a  -z "$temp_f" \) ]; do
-  while [ \( ! -z "$READ_RAIN" -a  -z "$rainfall" \) -o  \( ! -z "READ_TEMPERATURE" -a  -z "$temp" \) ]; do
-    echo "Reading rainfall/temperature"
+#  while [ \( ! -z "$READ_RAIN" -a  -z "$rainfall_in" \) -o  \( ! -z "READ_TEMP" -a  -z "$temp_f" \) ]; do
+  while [ \( "$READ_RAIN" = "y" -a "$rain_offline" = "n" -a  -z "$rainfall" \) -o  \( "READ_TEMP" = "y" -a "$temp_offline" = "n" -a  -z "$temp" \) ]; do
+    if [ "$READ_RAIN" = "y" -a "$rain_offline" = "n" -a  -z "$rainfall" ]; then
+    echo "Reading rainfall"
     #jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
-    jsonOutput=$(rtl_433 $RTL_433 $WEATHER_MEASURE -E quit) #quit after signal is read so that we can process the data
+    jsonOutput=$(rtl_433 $RTL_433_RAIN $WEATHER_MEASURE -E quit) #quit after signal is read so that we can process the data
     #jsonOutput=$(rtl_433 -h -E quit) #quit after signal is read so that we can process the data
     echo "Rain/temp output: $jsonOutput"
 
-    if [ ! -z "$READ_RAIN" -a -z "$rainfall" ]; then
       #Check for rainfall
 #      rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
       if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" = "n" ]; then
@@ -249,9 +276,12 @@ while true; do
         echo "Reading rain took $time_taken seconds (Temperature: $temp)"
       fi
     fi
-    if [ ! -z "$READ_TEMPERATURE" -a -z "$temp" ]; then
+
+    if [ "$READ_TEMP" = "y" -a "$temp_offline" = "n" -a  -z "$temp" ]; then
       #Look for temperature
       #temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
+      echo "Reading temperature"
+      jsonOutput=$(rtl_433 $RTL_433_TEMP $WEATHER_MEASURE -E quit) #quit after signal is read so that we can process the data
       if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" = "n" ]; then
         #Working in imperial
         temp=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_F'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
@@ -274,14 +304,14 @@ while true; do
     let "time_taken = $SECONDS - $start_rain"
     if [ $time_taken -ge $TIME_TO_WAIT ]; then
       if [ -z "$rainfall" ]; then
-        echo "***No rain measurement in $time_taken seconds. MARKING RAIN GAUGUE UNAVAILABLE***"
-        READ_RAIN=""
+        echo "***No rain measurement in $time_taken seconds. MARKING RAIN GAUGE UNAVAILABLE***"
+        rain_offline="y"
         rainfall=0
         rainrate=0
       fi
       if [ -z "$temp" ]; then
         echo "***No temperature measurement in $time_taken seconds. MARKING THERMOMETER UNAVAILABLE***"
-        READ_TEMPERATURE=""
+        temp_offline="y"
         temp=0
       fi
     fi
@@ -292,7 +322,7 @@ while true; do
         echo "Logging to custom API"
         # Currently uses a GET request
         #The "start" and "end" are hacks to get pass the readings into the Google web API!
-        url_string=`echo "$RAIN_API\"start=here&rainfall=$rainfall&rate=$rainrate&temperature=$temp&readingrain=$READ_RAIN&readingtemp=$READ_TEMPERATURE&end=here\"" | tr -d ' '`
+        url_string=`echo "$RAIN_API\"start=here&rainfall=$rainfall&rate=$rainrate&temperature=$temp&readingrain=$READ_RAIN&readingtemp=$READ_TEMP&end=here\"" | tr -d ' '`
         echo url_string
         curl -L $url_string
       else
