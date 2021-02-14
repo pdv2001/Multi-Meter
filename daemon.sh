@@ -244,7 +244,7 @@ while true; do
     #jsonOutput=$(rtl_433 -M RGR968 -E quit) #quit after signal is read so that we can process the data
     jsonOutput=$(rtl_433 $RTL_433_RAIN $WEATHER_MEASURE -E quit) #quit after signal is read so that we can process the data
     #jsonOutput=$(rtl_433 -h -E quit) #quit after signal is read so that we can process the data
-    echo "Rain/temp output: $jsonOutput"
+    echo "Rain gauge output: $jsonOutput"
 
       #Check for rainfall
 #      rainfall_mm=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'rain_mm'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
@@ -282,6 +282,7 @@ while true; do
       #temp_c=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_C'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
       echo "Reading temperature"
       jsonOutput=$(rtl_433 $RTL_433_TEMP $WEATHER_MEASURE -E quit) #quit after signal is read so that we can process the data
+      echo "Thermometer output: $jsonOutput"
       if [ -z "$WEATHER_METRIC" -o "$WEATHER_METRIC" = "n" ]; then
         #Working in imperial
         temp=$(echo $jsonOutput | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'temperature_F'\042/){print $(i+1)}}}' | tr -d '"' | sed -n '1p')
