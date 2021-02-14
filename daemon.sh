@@ -301,6 +301,8 @@ while true; do
     fi
     
     #Mark devices offline if no reading otherwise we just waste time waiting for them
+    #This probably only works for the current cycle but at least it allows for one
+    #reading if the other device has been marked off line
     #NEED SOME WAY OF RENABLING THEM
     let "time_taken = $SECONDS - $start_rain"
     if [ $time_taken -ge $TIME_TO_WAIT ]; then
