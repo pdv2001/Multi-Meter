@@ -326,7 +326,7 @@ while true; do
         # Currently uses a GET request
         #The "start" and "end" are hacks to get pass the readings into the Google web API!
         url_string=`echo "$RAIN_API\"start=here&rainfall=$rainfall&rate=$rainrate&temperature=$temp&readingrain=$READ_RAIN&readingtemp=$READ_TEMP&end=here\"" | tr -d ' '`
-        echo url_string
+        echo "$url_string"
         curl -L $url_string
       else
         echo "rainfall=$rainfall & rate=$rainrate & temperature=$temp"
