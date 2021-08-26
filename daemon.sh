@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 8/25/21  - Allow scan of all nearby meters
 # 2/14/21  - Allow for different device models for rain and temperature
 # 2/12/21  - Make imperial/metric configurable for weather readings
 # 2/5/21   - Make rtl_443 parameters configurable
@@ -19,6 +20,9 @@
 #-----------------------------------------------------------------------------------------------
 #| This supports reading 3 different types of meter + rain gauge and thermometer               |
 #| The following are configurable:                                                             |
+#| Meter Scan:                                                                                 |
+#|         METER_SCAN: Scan all meters (y/n)                                                   |
+#|         MSG_TYPE:   Message type scanned (all, scm, scm+, idm, netidm, r900 and r900bcd)    |
 #| Meter 1:                                                                                    |
 #|         METER_1_API:      URL to which data will be posted                                  |
 #|         METER_1_ID:       Meter ID                                                          |
@@ -128,6 +132,13 @@ while true; do
   rtl_tcp &> /dev/null &
   rtl_tcp_pid=$! # Save the pid for murder later
   sleep 10 #Let rtl_tcp startup and open a port
+
+  if [ "$METER_SCAN" = "y" ]; then
+    #Scan all nearby meters
+    echo "Scanning all nearby meters"
+    json=$(rtlamr -msgtype=$MSG_TYPE -single=false -format=json)
+    echo "Meters found: $json"
+  fi
 
   if [ ! -z "$METER_1_ID" ]; then
     #1ST METER
