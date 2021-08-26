@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 8/26/21  - Make scan duration configurable
 # 8/26/21  - Add duration to all meter scan
 # 8/25/21  - Back to "-single=false"
 # 8/25/21  - Try "-single=true"
@@ -24,8 +25,9 @@
 #| This supports reading 3 different types of meter + rain gauge and thermometer               |
 #| The following are configurable:                                                             |
 #| Meter Scan:                                                                                 |
-#|         METER_SCAN: Scan all meters (y/n)                                                   |
-#|         MSG_TYPE:   Message type scanned (all, scm, scm+, idm, netidm, r900 and r900bcd)    |
+#|         METER_SCAN:    Scan all meters (y/n)                                                |
+#|         MSG_TYPE:      Message type scanned (all, scm, scm+, idm, netidm, r900 and r900bcd) |
+#|         SCAN_DURATION: Scan duration (e.g. 300s)                                            |
 #| Meter 1:                                                                                    |
 #|         METER_1_API:      URL to which data will be posted                                  |
 #|         METER_1_ID:       Meter ID                                                          |
@@ -61,6 +63,7 @@ if [ -z "$RTL_433_RAIN" ]; then
   echo "RTL_443 parameter for rain gauge not set, using default: -M RGR968"
   RTL_433_RAIN=" -M RGR968 "
 fi
+
 if [ -z "$RTL_433_TEMP" ]; then
   echo "RTL_443 parameter for thermometer not set, using default: -M RGR968"
   RTL_433_TEMP=" -M RGR968 "
@@ -105,10 +108,16 @@ if [ -z "$TIME_TO_WAIT" ]; then
   TIME_TO_WAIT=200
 fi
 
-# Watchdog timeout is now configureable
+# Watchdog timeout is now configurable
 if [ -z "$WATCHDOG_TIMEOUT" ]; then
   echo "WATCHDOG_TIMEOUT not set, will reset if no reading for 30 minutes"
   WATCHDOG_TIMEOUT=30
+fi
+
+# Scan duration is now configurable
+if [ -z "$SCAN_DURATION" ]; then
+  echo "SCAN_DURATION not set, using 300s"
+  SCAN_DURATION="300s"
 fi
 
 # Setup for Metric/CCF
@@ -139,7 +148,7 @@ while true; do
   if [ "$METER_SCAN" = "y" ]; then
     #Scan all nearby meters
     echo "Scanning all nearby meters"
-    json=$(rtlamr -msgtype=$MSG_TYPE -single=false -duration=300s -format=json)
+    json=$(rtlamr -msgtype=$MSG_TYPE -single=false -duration=$SCAN_DURATION -format=json)
     echo "Meters found: $json"
   fi
 
