@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 8/26/21  - Add duration to all meter scan
 # 8/25/21  - Back to "-single=false"
 # 8/25/21  - Try "-single=true"
 # 8/25/21  - Allow scan of all nearby meters
@@ -138,7 +139,7 @@ while true; do
   if [ "$METER_SCAN" = "y" ]; then
     #Scan all nearby meters
     echo "Scanning all nearby meters"
-    json=$(rtlamr -msgtype=$MSG_TYPE -single=false -format=json)
+    json=$(rtlamr -msgtype=$MSG_TYPE -single=false -duration=300s -format=json)
     echo "Meters found: $json"
   fi
 
