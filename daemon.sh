@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 8/25/21  - Try "-single=true"
 # 8/25/21  - Allow scan of all nearby meters
 # 2/14/21  - Allow for different device models for rain and temperature
 # 2/12/21  - Make imperial/metric configurable for weather readings
@@ -136,7 +137,7 @@ while true; do
   if [ "$METER_SCAN" = "y" ]; then
     #Scan all nearby meters
     echo "Scanning all nearby meters"
-    json=$(rtlamr -msgtype=$MSG_TYPE -single=false -format=json)
+    json=$(rtlamr -msgtype=$MSG_TYPE -single=true -format=json)
     echo "Meters found: $json"
   fi
 
