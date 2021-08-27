@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 8/27/21  - Different UNIT divisors for each meter (still needs work)
 # 8/26/21  - Make scan duration configurable
 # 8/26/21  - Add duration to all meter scan
 # 8/25/21  - Back to "-single=false"
@@ -29,20 +30,26 @@
 #|         MSG_TYPE:      Message type scanned (all, scm, scm+, idm, netidm, r900 and r900bcd) |
 #|         SCAN_DURATION: Scan duration (e.g. 300s)                                            |
 #| Meter 1:                                                                                    |
-#|         METER_1_API:      URL to which data will be posted                                  |
-#|         METER_1_ID:       Meter ID                                                          |
-#|         METER_1_TYPE:     Meter Type (gas, water, electric)                                 |
-#|         METER_1_MSG_TYPE: Message type supported by meter(scm, r900, ...)                   |
+#|         METER_1_API:          URL to which data will be posted                              |
+#|         METER_1_ID:           Meter ID                                                      |
+#|         METER_1_TYPE:         Meter Type (gas, water, electric)                             |
+#|         METER_1_MSG_TYPE:     Message type supported by meter(scm, r900, ...)               |
+#|         METER_1_UNIT_DIVISOR: (Backward compatibility)                                      |
+#|         METER_1_UNITS:        (Backward compatibility)                                      |
 #| Meter 2:                                                                                    |
-#|         METER_2_API:      URL to which data will be posted                                  |
-#|         METER_2_ID:       Meter ID                                                          |
-#|         METER_2_TYPE:     Meter Type (gas, water, electric)                                 |
-#|         METER_2_MSG_TYPE: Message type supported by meter(scm, r900, ...)                   |
+#|         METER_2_API:          URL to which data will be posted                              |
+#|         METER_2_ID:           Meter ID                                                      |
+#|         METER_2_TYPE:         Meter Type (gas, water, electric)                             |
+#|         METER_2_MSG_TYPE:     Message type supported by meter(scm, r900, ...)               |
+#|         METER_2_UNIT_DIVISOR: (Backward compatibility)                                      |
+#|         METER_2_UNITS:        (Backward compatibility)                                      |
 #| Meter 3:                                                                                    |
-#|         METER_3_API:      URL to which data will be posted                                  |
-#|         METER_3_ID:       Meter ID                                                          |
-#|         METER_3_TYPE:     Meter Type (gas, water, electric)                                 |
-#|         METER_3_MSG_TYPE: Message type supported by meter(scm, r900, ...)                   |
+#|         METER_3_API:          URL to which data will be posted                              |
+#|         METER_3_ID:           Meter ID                                                      |
+#|         METER_3_TYPE:         Meter Type (gas, water, electric)                             |
+#|         METER_3_MSG_TYPE:     Message type supported by meter(scm, r900, ...)               |
+#|         METER_3_UNIT_DIVISOR: (Backward compatibility)                                      |
+#|         METER_3_UNITS:        (Backward compatibility)                                      |
 #|                                                                                             |
 #| METERS_METRIC: Convert meter readings to metric (y/n)                                       |
 #|                                                                                             |
@@ -210,11 +217,11 @@ while true; do
     json=$(rtlamr -msgtype=$METER_3_MSG_TYPE -filterid=$METER_3_ID -single=true -format=json)
     echo "$METER_1_TYPE meter info: $json"
 
-    consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])/$UNIT_DIVISOR")
+    consumption=$(echo $json | python -c "import json,sys;obj=json.load(sys.stdin);print float(obj[\"Message\"][\"Consumption\"])")
 
     # Only do something if a reading has been returned
     if [ ! -z "$consumption" ]; then
-      echo "Current $METER_3_TYPE consumption: $consumption $UNIT"
+      echo "Current $METER_3_TYPE consumption: $consumption $METER_3_UNITS"
 
       # Replace with your custom logging code
       if [ ! -z "$METER_3_API" ]; then
